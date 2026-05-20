@@ -20,7 +20,12 @@ const state = {
   grouped: null,
   existingLists: [],
   selectedCategory: "all",
+  bulkCategory: DEFAULT_CATEGORIES[0].id,
+  selectedRepoIds: new Set(),
+  searchQuery: "",
+  reviewOnly: false,
   listsAvailable: false,
+  isBusy: false,
 };
 
 const els = {
@@ -32,6 +37,8 @@ const els = {
   categoryList: document.querySelector("#categoryList"),
   repoList: document.querySelector("#repoList"),
   categoryFilter: document.querySelector("#categoryFilter"),
+  repoSearch: document.querySelector("#repoSearch"),
+  reviewOnly: document.querySelector("#reviewOnly"),
   categoryName: document.querySelector("#categoryName"),
   categoryKeywords: document.querySelector("#categoryKeywords"),
   addCategory: document.querySelector("#addCategory"),
@@ -41,6 +48,13 @@ const els = {
   importTaxonomy: document.querySelector("#importTaxonomy"),
   syncLists: document.querySelector("#syncLists"),
   listsNote: document.querySelector("#listsNote"),
+  selectFiltered: document.querySelector("#selectFiltered"),
+  clearSelected: document.querySelector("#clearSelected"),
+  selectionSummary: document.querySelector("#selectionSummary"),
+  bulkCategory: document.querySelector("#bulkCategory"),
+  applyBulkCategory: document.querySelector("#applyBulkCategory"),
+  selectedListName: document.querySelector("#selectedListName"),
+  pushSelected: document.querySelector("#pushSelected"),
 };
 
 els.analyze.addEventListener("click", analyzeStars);
@@ -49,45 +63,67 @@ els.categoryFilter.addEventListener("change", () => {
   state.selectedCategory = els.categoryFilter.value;
   renderRepos();
 });
+els.bulkCategory.addEventListener("change", () => {
+  state.bulkCategory = els.bulkCategory.value;
+  updateActionAvailability();
+});
+els.repoSearch.addEventListener("input", () => {
+  state.searchQuery = els.repoSearch.value.trim().toLowerCase();
+  renderRepos();
+});
+els.reviewOnly.addEventListener("change", () => {
+  state.reviewOnly = els.reviewOnly.checked;
+  renderRepos();
+});
 els.exportJson.addEventListener("click", () => {
-  if (state.grouped) downloadJson("github-stars-organized.json", exportPortableJson(state.grouped));
+  if (state.grouped) {
+    downloadJson("github-stars-organized.json", exportPortableJson(state.grouped));
+  }
 });
 els.exportMarkdown.addEventListener("click", () => {
-  if (state.grouped) downloadText("github-stars-organized.md", exportMarkdown(state.grouped), "text/markdown");
+  if (state.grouped) {
+    downloadText("github-stars-organized.md", exportMarkdown(state.grouped), "text/markdown");
+  }
 });
 els.exportTaxonomy.addEventListener("click", () => downloadJson("github-stars-taxonomy.json", state.categories));
 els.importTaxonomy.addEventListener("change", importTaxonomy);
 els.syncLists.addEventListener("click", syncGitHubLists);
+els.selectFiltered.addEventListener("click", selectVisibleRepos);
+els.clearSelected.addEventListener("click", clearSelection);
+els.applyBulkCategory.addEventListener("click", bulkMoveSelected);
+els.selectedListName.addEventListener("input", updateActionAvailability);
+els.pushSelected.addEventListener("click", pushSelectedToGitHubList);
 
 renderEmpty();
 
 async function analyzeStars() {
   const token = els.token.value.trim();
   if (!isLikelyGitHubToken(token)) {
-    setStatus("Enter a classic or fine-grained GitHub token. It is used only for GitHub API requests in this browser session.", "error");
+    setStatus("Enter a classic or fine-grained GitHub token. It is kept in memory only for GitHub API requests in this tab.", "error");
     return;
   }
 
   state.token = token;
+  state.selectedRepoIds.clear();
   setBusy(true);
   setStatus("Fetching starred repositories from GitHub...", "info");
-  setProgress(10);
+  setProgress(8);
 
   try {
     state.repos = await fetchAllStars(token, {
       onProgress: ({ count, rateLimit }) => {
-        setProgress(Math.min(70, 10 + count / 8));
+        setProgress(Math.min(72, 8 + count / 10));
         const remaining = rateLimit.remaining === null ? "unknown" : rateLimit.remaining;
         setStatus(`Fetched ${count} repositories. API remaining: ${remaining}.`, "info");
       },
     });
 
     state.grouped = categorizeRepos(state.repos, state.categories);
-    setProgress(85);
+    setProgress(84);
     await checkListsSupport(token);
     setProgress(100);
     renderAll();
-    setStatus(`Ready for review: ${state.grouped.metrics.total} repositories grouped into ${state.grouped.categories.length} categories.`, "success");
+    setStatus(`Review ready: ${state.grouped.metrics.total} repositories loaded. Filter, select a subset, then apply or export.`, "success");
   } catch (error) {
     setStatus(error.message, "error");
   } finally {
@@ -97,7 +133,11 @@ async function analyzeStars() {
 
 function addManualCategory() {
   const name = els.categoryName.value.trim();
-  const keywords = els.categoryKeywords.value.split(",").map((item) => item.trim()).filter(Boolean);
+  const keywords = els.categoryKeywords.value
+    .split(",")
+    .map((item) => item.trim())
+    .filter(Boolean);
+
   if (!name) {
     setStatus("Name the category before adding it.", "error");
     return;
@@ -106,7 +146,7 @@ function addManualCategory() {
   const category = createCategory({
     name,
     keywords,
-    description: keywords.length > 0 ? `Custom category matching: ${keywords.join(", ")}` : "Custom manual category",
+    description: keywords.length > 0 ? `Custom rule keywords: ${keywords.join(", ")}` : "Custom manual category",
   });
 
   if (state.categories.some((item) => item.id === category.id)) {
@@ -119,6 +159,7 @@ function addManualCategory() {
     { ...category },
     ...state.categories.filter((item) => item.isDefault),
   ]);
+
   els.categoryName.value = "";
   els.categoryKeywords.value = "";
   recategorize();
@@ -127,7 +168,7 @@ function addManualCategory() {
 
 function moveRepo(repoId, categoryId) {
   const target = state.categories.find((category) => category.id === categoryId);
-  const result = state.grouped.results.find((item) => String(item.repo.id) === String(repoId));
+  const result = state.grouped?.results.find((item) => String(item.repo.id) === String(repoId));
   if (!target || !result) return;
 
   result.primaryCategory = target;
@@ -137,17 +178,95 @@ function moveRepo(repoId, categoryId) {
   renderAll();
 }
 
+function bulkMoveSelected() {
+  if (!state.grouped || state.selectedRepoIds.size === 0) return;
+
+  const target = state.categories.find((category) => category.id === els.bulkCategory.value);
+  if (!target) {
+    setStatus("Choose a category before applying to selected repositories.", "error");
+    return;
+  }
+
+  for (const result of state.grouped.results) {
+    if (!state.selectedRepoIds.has(String(result.repo.id))) continue;
+    result.primaryCategory = target;
+    result.confidence = "manual";
+    result.explanations = ["manual override"];
+  }
+
+  rebuildGroupsFromResults();
+  renderAll();
+  setStatus(`Applied ${target.name} to ${state.selectedRepoIds.size} selected repositories.`, "success");
+}
+
+function toggleRepoSelection(repoId, checked) {
+  const id = String(repoId);
+  if (checked) {
+    state.selectedRepoIds.add(id);
+  } else {
+    state.selectedRepoIds.delete(id);
+  }
+  updateActionAvailability();
+  renderSelectionSummary();
+}
+
+function selectVisibleRepos() {
+  for (const result of getVisibleResults()) {
+    state.selectedRepoIds.add(String(result.repo.id));
+  }
+  renderRepos();
+}
+
+function clearSelection() {
+  state.selectedRepoIds.clear();
+  renderRepos();
+}
+
+async function pushSelectedToGitHubList() {
+  if (!state.grouped || !state.token || state.selectedRepoIds.size === 0) return;
+
+  const listName = els.selectedListName.value.trim();
+  if (!listName) {
+    setStatus("Name the GitHub List before pushing the selected subset.", "error");
+    return;
+  }
+
+  const selectedResults = state.grouped.results.filter((result) => state.selectedRepoIds.has(String(result.repo.id)));
+  setBusy(true);
+  setStatus(`Pushing ${selectedResults.length} selected repositories to GitHub List "${listName}". This uses an experimental endpoint.`, "info");
+
+  try {
+    const list = await createList(state.token, {
+      name: listName,
+      description: `Selected subset pushed from GitHub Stars Organizer (${selectedResults.length} repositories)`,
+    });
+
+    for (const result of selectedResults) {
+      await addRepoToList(state.token, list.id, result.repo.id);
+    }
+
+    setStatus(`Created GitHub List "${listName}" with ${selectedResults.length} selected repositories.`, "success");
+  } catch (error) {
+    setStatus(`${error.message}. If this endpoint is unavailable on your account, use Markdown/JSON export instead.`, "error");
+  } finally {
+    setBusy(false);
+  }
+}
+
 function recategorize() {
   if (state.repos.length === 0) {
     renderCategories();
+    renderFilterControls();
     return;
   }
+
   state.grouped = categorizeRepos(state.repos, state.categories);
   renderAll();
 }
 
 function rebuildGroupsFromResults() {
   const groups = new Map();
+
   for (const result of state.grouped.results) {
     const category = result.primaryCategory;
     const group = groups.get(category.id) || { ...category, repositories: [] };
@@ -155,11 +274,11 @@ function rebuildGroupsFromResults() {
     groups.set(category.id, group);
   }
 
-  state.grouped.categories = [...groups.values()].sort((a, b) => {
-    if (a.isDefault) return 1;
-    if (b.isDefault) return -1;
-    return b.repositories.length - a.repositories.length;
-  });
+  state.grouped.categories = state.categories.map((category) => ({
+    ...category,
+    repositories: groups.get(category.id)?.repositories || [],
+  }));
+
   state.grouped.metrics = {
     total: state.grouped.results.length,
     categorized: state.grouped.results.filter((item) => !item.primaryCategory.isDefault).length,
@@ -172,13 +291,11 @@ async function checkListsSupport(token) {
   try {
     state.existingLists = await fetchExistingLists(token);
     state.listsAvailable = true;
-    els.listsNote.textContent = `Experimental Lists API responded. Existing lists detected: ${state.existingLists.length}.`;
-    els.syncLists.disabled = false;
+    els.listsNote.textContent = `Experimental Lists endpoint responded. Existing GitHub Lists found: ${state.existingLists.length}. Category sync and selected-subset push are available.`;
   } catch (error) {
     state.existingLists = [];
     state.listsAvailable = false;
-    els.listsNote.textContent = "GitHub Lists API did not respond as a stable public API. Exports remain available.";
-    els.syncLists.disabled = true;
+    els.listsNote.textContent = "GitHub does not document a stable public Lists API. If direct push is unavailable on your account, use exports and GitHub's native Stars UI.";
   }
 }
 
@@ -187,7 +304,7 @@ async function syncGitHubLists() {
 
   const categories = state.grouped.categories.filter((category) => category.repositories.length > 0 && !category.isDefault);
   setBusy(true);
-  setStatus(`Creating ${categories.length} GitHub Lists. This uses an experimental GitHub endpoint.`, "info");
+  setStatus(`Pushing ${categories.length} non-empty categories to GitHub Lists. This uses an experimental endpoint.`, "info");
 
   let created = 0;
   let failed = 0;
@@ -202,15 +319,16 @@ async function syncGitHubLists() {
       for (const result of category.repositories) {
         await addRepoToList(state.token, list.id, result.repo.id);
       }
+
       created++;
-      setStatus(`Created ${created}/${categories.length}: ${category.name}`, "info");
+      setStatus(`Pushed ${created}/${categories.length} categories: ${category.name}`, "info");
     } catch (error) {
       failed++;
     }
   }
 
   setBusy(false);
-  setStatus(`Lists sync finished. Created: ${created}. Failed: ${failed}.`, failed ? "error" : "success");
+  setStatus(`Category push finished. Created: ${created}. Failed: ${failed}.`, failed > 0 ? "error" : "success");
 }
 
 function importTaxonomy(event) {
@@ -221,10 +339,12 @@ function importTaxonomy(event) {
   reader.onload = () => {
     try {
       const data = JSON.parse(String(reader.result));
-      if (!Array.isArray(data)) throw new Error("Taxonomy file must contain an array.");
+      if (!Array.isArray(data)) {
+        throw new Error("Taxonomy file must contain an array.");
+      }
       state.categories = normalizeCategories(data);
       recategorize();
-      setStatus(`Imported ${state.categories.length} categories.`, "success");
+      setStatus(`Imported ${state.categories.length} categories. Read Later and Uncategorized were preserved if missing.`, "success");
     } catch (error) {
       setStatus(error.message, "error");
     } finally {
@@ -237,20 +357,25 @@ function importTaxonomy(event) {
 function renderAll() {
   renderMetrics();
   renderCategories();
-  renderFilter();
+  renderFilterControls();
   renderRepos();
 }
 
 function renderEmpty() {
   renderCategories();
-  els.metrics.replaceChildren(metric("Repos", "0"), metric("Categorized", "0"), metric("Needs review", "0"));
-  els.repoList.replaceChildren(emptyState("Fetch your stars to review categories and exports."));
-  setExportButtons(false);
+  renderFilterControls();
+  els.metrics.replaceChildren(
+    metric("Repos", "0"),
+    metric("Categorized", "0"),
+    metric("Uncategorized", "0"),
+    metric("Needs review", "0"),
+  );
+  els.repoList.replaceChildren(emptyState("Fetch your stars to review categories, apply a subset, or export clean files."));
+  updateActionAvailability();
 }
 
 function renderMetrics() {
   const { total, categorized, uncategorized, lowConfidence } = state.grouped.metrics;
-  setExportButtons(true);
   els.metrics.replaceChildren(
     metric("Repos", total),
     metric("Categorized", categorized),
@@ -263,78 +388,127 @@ function renderCategories() {
   const counts = new Map((state.grouped?.categories || []).map((category) => [category.id, category.repositories.length]));
   const categories = state.categories.map((category) => ({
     ...category,
-    repositories: Array.from({ length: counts.get(category.id) || 0 }),
+    count: counts.get(category.id) || 0,
   }));
+
   els.categoryList.replaceChildren(...categories.map((category) => {
     const row = document.createElement("article");
     row.className = "category-row";
 
     const count = document.createElement("strong");
-    count.textContent = String(category.repositories?.length || 0);
+    count.textContent = String(category.count);
 
     const body = document.createElement("div");
     const title = document.createElement("h3");
     title.textContent = category.name;
     const description = document.createElement("p");
     description.textContent = category.description || "No description";
-    body.append(title, description);
 
+    body.append(title, description);
     row.append(count, body);
     return row;
   }));
 }
 
-function renderFilter() {
-  const options = [option("all", "All categories")];
-  for (const category of state.categories) {
-    options.push(option(category.id, category.name));
-  }
-  els.categoryFilter.replaceChildren(...options);
-  const availableValues = new Set(options.map((item) => item.value));
+function renderFilterControls() {
+  const categoryOptions = [option("all", "All categories"), ...state.categories.map((category) => option(category.id, category.name))];
+  els.categoryFilter.replaceChildren(...categoryOptions);
+  els.bulkCategory.replaceChildren(...state.categories.map((category) => option(category.id, category.name)));
+
+  const availableValues = new Set(categoryOptions.map((item) => item.value));
   if (!availableValues.has(state.selectedCategory)) {
     state.selectedCategory = "all";
   }
+
   els.categoryFilter.value = state.selectedCategory;
+  if (!state.categories.some((category) => category.id === state.bulkCategory)) {
+    state.bulkCategory = state.categories[0]?.id || "";
+  }
+  els.bulkCategory.value = state.bulkCategory;
+  renderSelectionSummary();
+  updateActionAvailability();
 }
 
 function renderRepos() {
   if (!state.grouped) {
     els.repoList.replaceChildren(emptyState("Fetch your stars to start reviewing repositories."));
+    renderSelectionSummary();
+    updateActionAvailability();
     return;
   }
 
-  const results = state.grouped.results.filter((result) => {
-    return state.selectedCategory === "all" || result.primaryCategory.id === state.selectedCategory;
-  });
-
+  const results = getVisibleResults();
   if (results.length === 0) {
-    els.repoList.replaceChildren(emptyState("No repositories in this category."));
+    els.repoList.replaceChildren(emptyState("No repositories match this filter."));
+    renderSelectionSummary();
+    updateActionAvailability();
     return;
   }
 
   els.repoList.replaceChildren(...results.map(repoRow));
+  renderSelectionSummary();
+  updateActionAvailability();
+}
+
+function getVisibleResults() {
+  if (!state.grouped) return [];
+
+  return state.grouped.results.filter((result) => {
+    const categoryMatch = state.selectedCategory === "all" || result.primaryCategory.id === state.selectedCategory;
+    const reviewMatch = !state.reviewOnly || result.confidence !== "high";
+    const haystack = [
+      result.repo.full_name,
+      result.repo.description,
+      result.repo.language,
+      ...(result.repo.topics || []),
+    ]
+      .filter(Boolean)
+      .join(" ")
+      .toLowerCase();
+    const searchMatch = state.searchQuery === "" || haystack.includes(state.searchQuery);
+    return categoryMatch && reviewMatch && searchMatch;
+  });
 }
 
 function repoRow(result) {
   const row = document.createElement("article");
   row.className = "repo-row";
 
+  const top = document.createElement("div");
+  top.className = "repo-main";
+
+  const toggle = document.createElement("input");
+  toggle.type = "checkbox";
+  toggle.checked = state.selectedRepoIds.has(String(result.repo.id));
+  toggle.setAttribute("aria-label", `Select ${result.repo.full_name}`);
+  toggle.addEventListener("change", () => toggleRepoSelection(result.repo.id, toggle.checked));
+
+  const text = document.createElement("div");
+  text.className = "repo-text";
+
   const title = document.createElement("a");
   title.href = result.repo.html_url;
   title.target = "_blank";
   title.rel = "noopener noreferrer";
+  title.className = "repo-title";
   title.textContent = result.repo.full_name;
 
-  const meta = document.createElement("p");
-  meta.textContent = [
-    result.repo.language || "Unknown language",
-    `${result.repo.stargazers_count?.toLocaleString?.() || 0} stars`,
-    `confidence: ${result.confidence}`,
-  ].join(" · ");
+  const meta = document.createElement("div");
+  meta.className = "repo-meta";
+  meta.append(
+    badge(result.repo.language || "Unknown"),
+    badge(`${result.repo.stargazers_count?.toLocaleString?.() || 0} stars`),
+    badge(`confidence: ${result.confidence}`, result.confidence),
+  );
 
-  const why = document.createElement("p");
-  why.className = "why";
-  why.textContent = result.explanations.length > 0 ? result.explanations.join(", ") : "No matching rule";
+  const snippet = document.createElement("p");
+  snippet.className = "repo-snippet";
+  snippet.textContent = result.repo.description || "No repository description";
+
+  text.append(title, meta, snippet);
+
+  const actions = document.createElement("div");
+  actions.className = "repo-actions";
 
   const select = document.createElement("select");
   select.setAttribute("aria-label", `Move ${result.repo.full_name}`);
@@ -342,10 +516,38 @@ function repoRow(result) {
   select.value = result.primaryCategory.id;
   select.addEventListener("change", () => moveRepo(result.repo.id, select.value));
 
-  const body = document.createElement("div");
-  body.append(title, meta, why);
-  row.append(body, select);
+  actions.append(select);
+  top.append(toggle, text, actions);
+
+  const details = document.createElement("details");
+  details.className = "repo-details";
+  const summary = document.createElement("summary");
+  summary.textContent = result.explanations.length > 0
+    ? `${result.explanations.length} matched rule${result.explanations.length > 1 ? "s" : ""}`
+    : "No matched rules";
+
+  const detailsBody = document.createElement("div");
+  detailsBody.className = "repo-details-body";
+  const why = document.createElement("p");
+  why.textContent = result.explanations.length > 0 ? result.explanations.join(", ") : "No matching rule";
+  detailsBody.append(why);
+
+  if ((result.repo.topics || []).length > 0) {
+    const topics = document.createElement("p");
+    topics.textContent = `topics: ${result.repo.topics.join(", ")}`;
+    detailsBody.append(topics);
+  }
+
+  details.append(summary, detailsBody);
+  row.append(top, details);
   return row;
+}
+
+function badge(text, tone = "default") {
+  const node = document.createElement("span");
+  node.className = `badge badge-${tone}`;
+  node.textContent = text;
+  return node;
 }
 
 function metric(label, value) {
@@ -373,10 +575,34 @@ function emptyState(message) {
   return node;
 }
 
+function renderSelectionSummary() {
+  const visibleCount = getVisibleResults().length;
+  const selectedCount = state.selectedRepoIds.size;
+  els.selectionSummary.textContent = `${selectedCount} selected · ${visibleCount} visible`;
+}
+
 function setBusy(isBusy) {
-  els.analyze.disabled = isBusy;
-  els.addCategory.disabled = isBusy;
-  els.syncLists.disabled = isBusy || !state.listsAvailable;
+  state.isBusy = isBusy;
+  updateActionAvailability();
+}
+
+function updateActionAvailability() {
+  const hasGrouped = Boolean(state.grouped);
+  const hasSelection = state.selectedRepoIds.size > 0;
+  const canPushSelected = hasGrouped && hasSelection && state.listsAvailable && els.selectedListName.value.trim() !== "";
+
+  els.analyze.disabled = state.isBusy;
+  els.addCategory.disabled = state.isBusy;
+  els.exportJson.disabled = state.isBusy || !hasGrouped;
+  els.exportMarkdown.disabled = state.isBusy || !hasGrouped;
+  els.exportTaxonomy.disabled = state.isBusy || state.categories.length === 0;
+  els.syncLists.disabled = state.isBusy || !hasGrouped || !state.listsAvailable;
+  els.selectFiltered.disabled = state.isBusy || !hasGrouped;
+  els.clearSelected.disabled = state.isBusy || !hasSelection;
+  els.bulkCategory.disabled = state.isBusy || !hasGrouped;
+  els.applyBulkCategory.disabled = state.isBusy || !hasGrouped || !hasSelection;
+  els.selectedListName.disabled = state.isBusy || !hasGrouped;
+  els.pushSelected.disabled = state.isBusy || !canPushSelected;
 }
 
 function normalizeCategories(inputCategories) {
@@ -399,11 +625,6 @@ function normalizeCategories(inputCategories) {
   return normalized;
 }
 
-function setExportButtons(enabled) {
-  els.exportJson.disabled = !enabled;
-  els.exportMarkdown.disabled = !enabled;
-}
-
 function setStatus(message, type) {
   els.status.textContent = message;
   els.status.dataset.type = type;
@@ -419,6 +640,7 @@ function downloadJson(filename, value) {
 
 function downloadText(filename, text, type) {
   if (!text) return;
+
   const blob = new Blob([text], { type });
   const url = URL.createObjectURL(blob);
   const link = document.createElement("a");

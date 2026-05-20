@@ -249,21 +249,70 @@
       line-height: 1.4;
     }
 
-    .repo-tools {
+    .repo-tools,
+    .batch-tools {
       display: grid;
-      grid-template-columns: 1fr auto;
       gap: 10px;
       margin-bottom: 12px;
     }
 
+    .repo-tools {
+      grid-template-columns: minmax(0, 1.2fr) minmax(220px, 0.8fr) auto;
+      align-items: center;
+    }
+
+    .batch-tools {
+      grid-template-columns: minmax(0, 1fr) auto auto minmax(220px, 260px) auto;
+      align-items: center;
+    }
+
+    .toggle {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--muted);
+      font-size: 0.86rem;
+      margin: 0;
+      white-space: nowrap;
+    }
+
+    .toggle input {
+      width: auto;
+      min-height: 0;
+      margin: 0;
+    }
+
+    .selection-summary {
+      color: var(--muted);
+      font-size: 0.86rem;
+      margin: 0 0 10px;
+    }
+
     .repo-row {
       display: grid;
-      grid-template-columns: minmax(0, 1fr) 220px;
-      gap: 14px;
+      gap: 10px;
+      padding: 12px 14px;
+    }
+
+    .repo-main {
+      display: grid;
+      grid-template-columns: 22px minmax(0, 1fr) 240px;
+      gap: 12px;
       align-items: start;
     }
 
-    .repo-row a {
+    .repo-main input[type="checkbox"] {
+      width: 18px;
+      height: 18px;
+      min-height: 18px;
+      margin-top: 3px;
+    }
+
+    .repo-text {
+      min-width: 0;
+    }
+
+    .repo-title {
       display: inline-block;
       font-weight: 700;
       margin-bottom: 6px;
@@ -271,9 +320,77 @@
       overflow-wrap: anywhere;
     }
 
-    .why {
-      margin-top: 8px !important;
-      font-size: 0.78rem !important;
+    .repo-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-bottom: 6px;
+    }
+
+    .repo-snippet {
+      color: var(--muted);
+      font-size: 0.83rem !important;
+      line-height: 1.35 !important;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    .repo-actions {
+      display: flex;
+      justify-content: flex-end;
+    }
+
+    .repo-details {
+      border-top: 1px solid var(--line);
+      padding-top: 8px;
+    }
+
+    .repo-details summary {
+      cursor: pointer;
+      color: var(--accent-strong);
+      font-size: 0.82rem;
+      list-style: none;
+    }
+
+    .repo-details summary::-webkit-details-marker {
+      display: none;
+    }
+
+    .repo-details-body {
+      margin-top: 8px;
+      display: grid;
+      gap: 6px;
+    }
+
+    .repo-details-body p {
+      font-size: 0.8rem !important;
+      color: var(--muted);
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      min-height: 24px;
+      padding: 0 8px;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      background: #fbf8f2;
+      color: var(--muted);
+      font-size: 0.76rem;
+    }
+
+    .badge-high {
+      color: var(--accent-strong);
+      border-color: rgba(23, 107, 85, 0.28);
+    }
+
+    .badge-medium,
+    .badge-low,
+    .badge-manual {
+      color: var(--warn);
+      border-color: rgba(138, 75, 18, 0.25);
     }
 
     .empty {
@@ -305,8 +422,13 @@
       }
 
       .repo-tools,
-      .repo-row {
+      .batch-tools,
+      .repo-main {
         grid-template-columns: 1fr;
+      }
+
+      .repo-actions {
+        justify-content: stretch;
       }
     }
   </style>
@@ -325,10 +447,15 @@
           <label for="token">GitHub token</label>
           <input id="token" type="password" autocomplete="off" spellcheck="false" placeholder="github_pat_... or ghp_...">
         </div>
-        <p class="hint">Runs in this browser. The token is not stored and is only sent to GitHub API requests. Use the least-privilege token available for reading stars.</p>
+        <p class="hint">Runs in this browser. The token is not stored and is only sent to GitHub API requests. Generate a fine-grained token at <a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noopener noreferrer">github.com/settings/personal-access-tokens/new</a>. For reading stars, choose your account as the resource owner and enable <strong>Starring: Read</strong>. If you want private starred repositories included, allow repository access to the repositories you need.</p>
         <div class="actions">
           <button id="analyze">Analyze stars</button>
         </div>
+      </section>
+
+      <section class="panel">
+        <h2>How To Apply</h2>
+        <p class="hint">1. Analyze your stars. 2. Use search, category filter, and <strong>Needs review only</strong> to narrow a subset. 3. Tick the repositories you want. 4. Apply a category to the selected subset or push that subset to one GitHub List if the experimental endpoint is available.</p>
       </section>
 
       <section class="panel">
@@ -362,7 +489,7 @@
       <section class="panel">
         <h2>GitHub Lists</h2>
         <p id="listsNote" class="hint">Lists sync is checked after analysis because GitHub does not expose it as a stable documented REST workflow.</p>
-        <button id="syncLists" class="secondary" disabled>Sync non-empty categories</button>
+        <button id="syncLists" class="secondary" disabled>Push all non-empty categories</button>
       </section>
     </aside>
 
@@ -381,9 +508,25 @@
 
         <div>
           <div class="repo-tools">
+            <input id="repoSearch" type="search" placeholder="Search name, description, language, topic">
             <select id="categoryFilter" aria-label="Filter repositories by category">
               <option value="all">All categories</option>
             </select>
+            <label class="toggle" for="reviewOnly">
+              <input id="reviewOnly" type="checkbox">
+              Needs review only
+            </label>
+          </div>
+          <p id="selectionSummary" class="selection-summary">0 selected · 0 visible</p>
+          <div class="batch-tools">
+            <button id="selectFiltered" class="secondary">Select visible</button>
+            <button id="clearSelected" class="secondary">Clear selection</button>
+            <select id="bulkCategory" aria-label="Category for selected repositories"></select>
+            <button id="applyBulkCategory" class="secondary">Apply to selected</button>
+          </div>
+          <div class="batch-tools">
+            <input id="selectedListName" type="text" placeholder="GitHub List name for selected subset">
+            <button id="pushSelected" class="secondary">Push selected subset</button>
           </div>
           <div id="repoList" class="repo-list"></div>
         </div>

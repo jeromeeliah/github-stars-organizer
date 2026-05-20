@@ -27,6 +27,13 @@ Then open `http://localhost:4173/github_stars_organizer.html`.
 
 Use the least-privilege GitHub token available for your workflow. The token is held only in memory for the current browser session and is sent only to GitHub API requests.
 
+Recommended setup:
+
+- Generate a fine-grained token at `https://github.com/settings/personal-access-tokens/new`
+- Choose your own account as the resource owner
+- Enable `Starring: Read` under user permissions
+- Allow repository access only to the repositories you want included if you need private starred repositories
+
 Supported token prefixes:
 
 - `github_pat_`
@@ -40,6 +47,9 @@ Supported token prefixes:
 - Show confidence and matched-rule explanations
 - Add custom categories manually
 - Move repositories between categories before export
+- Filter by category, search text, or `Needs review only`
+- Select a subset and apply a category in one action
+- Try pushing a selected subset directly to one GitHub List when the experimental endpoint is available
 - Export minimized portable JSON
 - Export Markdown report
 - Export/import taxonomy JSON
