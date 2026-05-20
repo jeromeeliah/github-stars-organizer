@@ -61,6 +61,11 @@ Key files:
 - `src/githubApi.js` - GitHub API boundary
 - `tests/` - Node tests for pure modules
 
+## Open Source Basics
+
+- License: [MIT](./LICENSE)
+- Contribution guide: [CONTRIBUTING.md](./CONTRIBUTING.md)
+
 ## Open Source Positioning
 
 The project is best positioned as a small bridge between a messy starred-repo backlog and useful categories or GitHub Lists, not as a hosted stars dashboard.
