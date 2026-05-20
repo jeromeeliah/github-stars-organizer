@@ -1,0 +1,671 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GitHub Stars Organizer</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            color: #e8e8e8;
+            min-height: 100vh;
+            padding: 2rem;
+        }
+        .container { max-width: 1200px; margin: 0 auto; }
+        h1 { text-align: center; margin-bottom: 0.5rem; font-size: 2.5rem; }
+        .subtitle { text-align: center; color: #888; margin-bottom: 2rem; }
+        
+        .card {
+            background: rgba(255,255,255,0.05);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .input-group { margin-bottom: 1rem; }
+        .input-group label { display: block; margin-bottom: 0.5rem; font-weight: 500; }
+        .input-group input {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 8px;
+            background: rgba(0,0,0,0.3);
+            color: #fff;
+            font-size: 1rem;
+        }
+        .input-group input:focus { outline: none; border-color: #4CAF50; }
+        
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-weight: 500;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #4CAF50, #45a049);
+            color: white;
+        }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(76,175,80,0.4); }
+        .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+        
+        .btn-secondary {
+            background: rgba(255,255,255,0.1);
+            color: #fff;
+            margin-left: 0.5rem;
+        }
+        
+        .btn-danger {
+            background: linear-gradient(135deg, #f44336, #d32f2f);
+            color: white;
+        }
+        
+        .progress-container {
+            background: rgba(0,0,0,0.3);
+            border-radius: 8px;
+            height: 8px;
+            overflow: hidden;
+            margin: 1rem 0;
+        }
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #4CAF50, #8BC34A);
+            transition: width 0.3s;
+            width: 0%;
+        }
+        
+        #status { 
+            padding: 1rem; 
+            border-radius: 8px; 
+            margin: 1rem 0;
+            display: none;
+        }
+        #status.info { background: rgba(33,150,243,0.2); border: 1px solid #2196F3; display: block; }
+        #status.success { background: rgba(76,175,80,0.2); border: 1px solid #4CAF50; display: block; }
+        #status.error { background: rgba(244,67,54,0.2); border: 1px solid #f44336; display: block; }
+        
+        .categories-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+        
+        .category-card {
+            background: rgba(0,0,0,0.3);
+            border-radius: 8px;
+            padding: 1rem;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        .category-card h3 { margin-bottom: 0.5rem; font-size: 1.1rem; }
+        .category-card .count { color: #888; font-size: 0.9rem; margin-bottom: 0.5rem; }
+        .category-card ul { 
+            list-style: none; 
+            max-height: 150px; 
+            overflow-y: auto;
+            font-size: 0.85rem;
+        }
+        .category-card li { 
+            padding: 0.25rem 0; 
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .category-card li a { color: #64B5F6; text-decoration: none; }
+        .category-card li a:hover { text-decoration: underline; }
+        
+        .actions { margin-top: 1.5rem; display: flex; gap: 0.5rem; flex-wrap: wrap; }
+        
+        #results { display: none; }
+        #results.visible { display: block; }
+        
+        .hidden { display: none !important; }
+        
+        .warning {
+            background: rgba(255,152,0,0.2);
+            border: 1px solid #FF9800;
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+        }
+        
+        .step { opacity: 0.5; }
+        .step.active { opacity: 1; }
+        .step.done { opacity: 1; color: #4CAF50; }
+        .step.done::before { content: "✓ "; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>⭐ GitHub Stars Organizer</h1>
+        <p class="subtitle">Automatically categorize your starred repositories into smart lists</p>
+        
+        <div class="card">
+            <div class="input-group">
+                <label for="token">GitHub Personal Access Token</label>
+                <input type="password" id="token" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx" />
+            </div>
+            <p style="color: #888; font-size: 0.85rem; margin-bottom: 1rem;">
+                Need a token? <a href="https://github.com/settings/tokens/new?scopes=repo,read:user" target="_blank" style="color: #64B5F6;">Create one here</a> 
+                (select <code>repo</code> and <code>read:user</code> scopes)
+            </p>
+            
+            <button class="btn btn-primary" id="startBtn" onclick="start()">
+                🚀 Analyze My Stars
+            </button>
+        </div>
+        
+        <div id="status"></div>
+        
+        <div class="progress-container" id="progressContainer" style="display: none;">
+            <div class="progress-bar" id="progressBar"></div>
+        </div>
+        
+        <div id="steps" class="card" style="display: none;">
+            <p class="step" id="step1">Fetching starred repositories...</p>
+            <p class="step" id="step2">Analyzing repository metadata...</p>
+            <p class="step" id="step3">Categorizing repositories...</p>
+            <p class="step" id="step4">Fetching existing lists...</p>
+            <p class="step" id="step5">Ready to create lists!</p>
+        </div>
+        
+        <div id="results">
+            <div class="card">
+                <h2>📊 Categorization Results</h2>
+                <p id="summary" style="margin: 1rem 0; color: #888;"></p>
+                
+                <div class="categories-grid" id="categoriesGrid"></div>
+                
+                <div class="actions">
+                    <button class="btn btn-primary" id="createListsBtn" onclick="createLists()">
+                        📋 Create GitHub Lists
+                    </button>
+                    <button class="btn btn-secondary" onclick="downloadReport()">
+                        📥 Download Report
+                    </button>
+                    <button class="btn btn-secondary" onclick="downloadJSON()">
+                        💾 Export JSON
+                    </button>
+                </div>
+                
+                <div class="warning" id="existingListsWarning" style="display: none; margin-top: 1rem;">
+                    <strong>⚠️ Note:</strong> You have existing lists. Creating new lists won't delete the old ones. 
+                    You may want to manually clean up old lists after.
+                </div>
+            </div>
+        </div>
+    </div>
+
+<script>
+// Category definitions
+const CATEGORIES = {
+    "🤖 AI Foundations": {
+        keywords: ["llm", "gpt", "transformer", "neural", "deep-learning", "machine-learning", 
+                   "tensorflow", "pytorch", "model", "inference", "embedding", "vector", "ggml",
+                   "whisper", "llama", "mistral", "ollama", "huggingface", "diffusion"],
+        languages: ["Jupyter Notebook"],
+        description: "Core ML/AI infrastructure, models, and frameworks"
+    },
+    "🦾 AI Agents & Tools": {
+        keywords: ["agent", "mcp", "claude", "copilot", "assistant", "autonomous", "agentic",
+                   "langchain", "autogen", "crew", "skill", "workflow", "automation", "openai"],
+        languages: [],
+        description: "Agentic AI, coding assistants, MCP servers"
+    },
+    "🎨 AI Creative": {
+        keywords: ["comfyui", "stable-diffusion", "image-generation", "art", "creative", 
+                   "generative", "midjourney", "dalle", "invoke", "logo", "design-ai"],
+        languages: [],
+        description: "Image generation, visual AI, creative tools"
+    },
+    "💻 Dev Tools & Productivity": {
+        keywords: ["tool", "cli", "utility", "productivity", "workflow", "automation",
+                   "developer", "devtool", "plugin", "extension", "editor", "ide", "git"],
+        languages: [],
+        description: "Developer utilities and productivity tools"
+    },
+    "🍎 macOS Apps": {
+        keywords: ["macos", "mac", "osx", "menubar", "dock", "notch", "swift", "appkit",
+                   "cocoa", "apple", "finder", "spotlight", "alfred"],
+        languages: ["Swift", "Objective-C"],
+        description: "Native macOS applications and utilities"
+    },
+    "💰 Finance & Quant": {
+        keywords: ["finance", "trading", "quant", "stock", "crypto", "blockchain", "defi",
+                   "investment", "portfolio", "market", "financial", "banking", "fintech"],
+        languages: [],
+        description: "Fintech, quantitative analysis, trading"
+    },
+    "🧬 Bio & Life Sciences": {
+        keywords: ["bio", "health", "medical", "genomic", "protein", "molecular", "drug",
+                   "pharma", "clinical", "dna", "rna", "cell", "tissue", "disease"],
+        languages: ["R", "MATLAB"],
+        description: "Bioinformatics, health tech, life sciences"
+    },
+    "📚 Learning & CS": {
+        keywords: ["learn", "tutorial", "course", "book", "guide", "algorithm", "interview",
+                   "awesome", "curated", "roadmap", "study", "education", "primer", "handbook"],
+        languages: [],
+        description: "Educational resources, CS fundamentals"
+    },
+    "🎯 Project Inspiration": {
+        keywords: ["clone", "starter", "template", "boilerplate", "example", "demo",
+                   "showcase", "portfolio", "idea", "inspiration", "reference"],
+        languages: [],
+        description: "Reference projects, ideas, starters"
+    },
+    "🌐 Web & APIs": {
+        keywords: ["web", "api", "rest", "graphql", "frontend", "backend", "fullstack",
+                   "react", "vue", "next", "database", "cms", "crm", "scraper"],
+        languages: ["HTML", "CSS", "PHP"],
+        description: "Web development, APIs, data platforms"
+    },
+    "🔐 Security & Privacy": {
+        keywords: ["security", "privacy", "hack", "pentest", "vulnerability", "exploit",
+                   "crypto", "encryption", "auth", "identity", "password", "secret"],
+        languages: [],
+        description: "Security tools, privacy, ethical hacking"
+    },
+    "🌍 Domain Specific": {
+        keywords: ["tax", "legal", "law", "jurisdiction", "government", "compliance",
+                   "regulation", "regional", "country", "geographic"],
+        languages: [],
+        description: "Industry/region-specific tools"
+    },
+    "📖 Read Later": {
+        keywords: [],
+        languages: [],
+        description: "Interesting repos to explore later",
+        manual: true  // This category is for manual assignment
+    },
+    "📁 Uncategorized": {
+        keywords: [],
+        languages: [],
+        description: "Repos that don't fit other categories",
+        isDefault: true
+    }
+};
+
+let allRepos = [];
+let categorizedRepos = {};
+let existingLists = [];
+let token = "";
+
+function setStatus(message, type = "info") {
+    const status = document.getElementById("status");
+    status.textContent = message;
+    status.className = type;
+}
+
+function setProgress(percent) {
+    document.getElementById("progressContainer").style.display = "block";
+    document.getElementById("progressBar").style.width = percent + "%";
+}
+
+function setStep(stepNum, state) {
+    const step = document.getElementById("step" + stepNum);
+    step.className = "step " + state;
+}
+
+async function fetchAllStars(token) {
+    const repos = [];
+    let page = 1;
+    const perPage = 100;
+    
+    while (true) {
+        const response = await fetch(
+            `https://api.github.com/user/starred?page=${page}&per_page=${perPage}`,
+            { headers: { "Authorization": `token ${token}`, "Accept": "application/vnd.github.v3+json" } }
+        );
+        
+        if (!response.ok) {
+            throw new Error(`API Error: ${response.status} ${response.statusText}`);
+        }
+        
+        const data = await response.json();
+        if (data.length === 0) break;
+        
+        repos.push(...data);
+        setProgress((repos.length / 300) * 30); // Estimate ~300 repos max
+        setStatus(`Fetched ${repos.length} repositories...`, "info");
+        page++;
+    }
+    
+    return repos;
+}
+
+function categorizeRepo(repo) {
+    const name = (repo.name || "").toLowerCase();
+    const description = (repo.description || "").toLowerCase();
+    const language = repo.language || "";
+    const topics = (repo.topics || []).map(t => t.toLowerCase());
+    const fullName = (repo.full_name || "").toLowerCase();
+    
+    const textToSearch = `${name} ${description} ${fullName} ${topics.join(" ")}`;
+    
+    let bestCategory = "📁 Uncategorized";
+    let bestScore = 0;
+    
+    for (const [category, definition] of Object.entries(CATEGORIES)) {
+        // Skip manual-only and default categories
+        if (definition.manual || definition.isDefault) continue;
+        
+        let score = 0;
+        
+        // Check keywords
+        for (const keyword of definition.keywords) {
+            if (textToSearch.includes(keyword)) {
+                score += 2;
+            }
+        }
+        
+        // Check language
+        if (definition.languages.includes(language)) {
+            score += 3;
+        }
+        
+        if (score > bestScore) {
+            bestScore = score;
+            bestCategory = category;
+        }
+    }
+    
+    return bestCategory;
+}
+
+async function fetchExistingLists(token) {
+    try {
+        const response = await fetch("https://api.github.com/user/lists", {
+            headers: { "Authorization": `token ${token}`, "Accept": "application/vnd.github.v3+json" }
+        });
+        
+        if (response.ok) {
+            return await response.json();
+        }
+    } catch (e) {
+        console.log("Lists API not available");
+    }
+    return [];
+}
+
+async function start() {
+    token = document.getElementById("token").value.trim();
+    
+    if (!token || !token.startsWith("ghp_")) {
+        setStatus("Please enter a valid GitHub token (starts with ghp_)", "error");
+        return;
+    }
+    
+    document.getElementById("startBtn").disabled = true;
+    document.getElementById("steps").style.display = "block";
+    
+    try {
+        // Step 1: Fetch stars
+        setStep(1, "active");
+        setStatus("Fetching your starred repositories...", "info");
+        allRepos = await fetchAllStars(token);
+        setStep(1, "done");
+        setProgress(30);
+        
+        // Step 2: Analyze
+        setStep(2, "active");
+        setStatus(`Analyzing ${allRepos.length} repositories...`, "info");
+        await new Promise(r => setTimeout(r, 500));
+        setStep(2, "done");
+        setProgress(50);
+        
+        // Step 3: Categorize
+        setStep(3, "active");
+        categorizedRepos = {};
+        for (const repo of allRepos) {
+            const category = categorizeRepo(repo);
+            if (!categorizedRepos[category]) {
+                categorizedRepos[category] = [];
+            }
+            categorizedRepos[category].push(repo);
+        }
+        setStep(3, "done");
+        setProgress(70);
+        
+        // Step 4: Fetch existing lists
+        setStep(4, "active");
+        setStatus("Checking existing lists...", "info");
+        existingLists = await fetchExistingLists(token);
+        setStep(4, "done");
+        setProgress(90);
+        
+        // Step 5: Ready
+        setStep(5, "done");
+        setProgress(100);
+        
+        // Display results
+        displayResults();
+        setStatus(`Successfully categorized ${allRepos.length} repositories into ${Object.keys(categorizedRepos).length} categories!`, "success");
+        
+        if (existingLists.length > 0) {
+            document.getElementById("existingListsWarning").style.display = "block";
+        }
+        
+    } catch (error) {
+        setStatus(`Error: ${error.message}`, "error");
+        console.error(error);
+    }
+    
+    document.getElementById("startBtn").disabled = false;
+}
+
+function displayResults() {
+    const grid = document.getElementById("categoriesGrid");
+    grid.innerHTML = "";
+    
+    // Ensure Read Later exists (empty by default)
+    if (!categorizedRepos["📖 Read Later"]) {
+        categorizedRepos["📖 Read Later"] = [];
+    }
+    
+    // Sort categories: by repo count, but keep Read Later and Uncategorized at end
+    const sorted = Object.entries(categorizedRepos).sort((a, b) => {
+        // Read Later always second to last
+        if (a[0] === "📖 Read Later") return 1;
+        if (b[0] === "📖 Read Later") return -1;
+        // Uncategorized always last
+        if (a[0] === "📁 Uncategorized") return 1;
+        if (b[0] === "📁 Uncategorized") return -1;
+        // Rest by count
+        return b[1].length - a[1].length;
+    });
+    
+    let totalCategorized = 0;
+    
+    for (const [category, repos] of sorted) {
+        totalCategorized += repos.length;
+        
+        const card = document.createElement("div");
+        card.className = "category-card";
+        
+        // Special styling for Read Later and Uncategorized
+        if (category === "📖 Read Later") {
+            card.style.borderColor = "rgba(255, 193, 7, 0.5)";
+            card.style.background = "rgba(255, 193, 7, 0.1)";
+        } else if (category === "📁 Uncategorized") {
+            card.style.borderColor = "rgba(158, 158, 158, 0.5)";
+            card.style.background = "rgba(158, 158, 158, 0.1)";
+        }
+        
+        let content = "";
+        if (repos.length === 0) {
+            content = `<li style="color:#888; font-style:italic;">Empty - add repos manually on GitHub</li>`;
+        } else {
+            const topRepos = repos.slice(0, 8).map(r => 
+                `<li><a href="${r.html_url}" target="_blank">${r.full_name}</a></li>`
+            ).join("");
+            content = topRepos + (repos.length > 8 ? `<li style="color:#888">...and ${repos.length - 8} more</li>` : "");
+        }
+        
+        const description = CATEGORIES[category]?.description || "";
+        
+        card.innerHTML = `
+            <h3>${category}</h3>
+            <p class="count">${repos.length} repositories</p>
+            ${description ? `<p style="color:#666; font-size:0.8rem; margin-bottom:0.5rem;">${description}</p>` : ""}
+            <ul>${content}</ul>
+        `;
+        
+        grid.appendChild(card);
+    }
+    
+    document.getElementById("summary").textContent = 
+        `${allRepos.length} starred repos organized into ${Object.keys(categorizedRepos).length} categories`;
+    
+    document.getElementById("results").classList.add("visible");
+}
+
+async function createLists() {
+    const btn = document.getElementById("createListsBtn");
+    btn.disabled = true;
+    btn.textContent = "Creating lists...";
+    
+    let created = 0;
+    let failed = 0;
+    
+    // Ensure Read Later exists
+    if (!categorizedRepos["📖 Read Later"]) {
+        categorizedRepos["📖 Read Later"] = [];
+    }
+    
+    for (const [category, repos] of Object.entries(categorizedRepos)) {
+        try {
+            // Create list
+            const listResponse = await fetch("https://api.github.com/user/lists", {
+                method: "POST",
+                headers: {
+                    "Authorization": `token ${token}`,
+                    "Accept": "application/vnd.github.v3+json",
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    name: category,
+                    description: CATEGORIES[category]?.description || "Auto-organized by Stars Organizer"
+                })
+            });
+            
+            if (listResponse.ok) {
+                const list = await listResponse.json();
+                
+                // Add repos to list (if any)
+                for (const repo of repos) {
+                    try {
+                        await fetch(`https://api.github.com/user/lists/${list.id}/items`, {
+                            method: "POST",
+                            headers: {
+                                "Authorization": `token ${token}`,
+                                "Accept": "application/vnd.github.v3+json",
+                                "Content-Type": "application/json"
+                            },
+                            body: JSON.stringify({ repository_id: repo.id })
+                        });
+                    } catch (e) {
+                        console.log(`Failed to add ${repo.full_name} to list`);
+                    }
+                }
+                
+                created++;
+                setStatus(`Created ${created} lists... (${category})`, "info");
+            } else {
+                const errorData = await listResponse.json().catch(() => ({}));
+                console.log(`Failed to create list ${category}:`, errorData);
+                failed++;
+            }
+        } catch (e) {
+            failed++;
+            console.error(e);
+        }
+        
+        // Small delay to avoid rate limiting
+        await new Promise(r => setTimeout(r, 200));
+    }
+    
+    btn.disabled = false;
+    btn.textContent = "📋 Create GitHub Lists";
+    
+    if (created > 0) {
+        setStatus(`✅ Created ${created} lists! ${failed > 0 ? `(${failed} failed)` : ""} Check your GitHub stars page.`, "success");
+    } else {
+        setStatus("⚠️ GitHub Lists API may not be available for your account. Use the export options instead.", "error");
+    }
+}
+
+function downloadReport() {
+    let md = `# ⭐ GitHub Stars Organized\n\n`;
+    md += `**Total:** ${allRepos.length} repositories\n`;
+    md += `**Categories:** ${Object.keys(categorizedRepos).length}\n`;
+    md += `**Generated:** ${new Date().toISOString()}\n\n`;
+    md += `---\n\n## 📑 Table of Contents\n\n`;
+    
+    // Sort same as display
+    const sorted = Object.entries(categorizedRepos).sort((a, b) => {
+        if (a[0] === "📖 Read Later") return 1;
+        if (b[0] === "📖 Read Later") return -1;
+        if (a[0] === "📁 Uncategorized") return 1;
+        if (b[0] === "📁 Uncategorized") return -1;
+        return b[1].length - a[1].length;
+    });
+    
+    // TOC
+    for (const [category, repos] of sorted) {
+        const anchor = category.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+        md += `- [${category}](#${anchor}) (${repos.length})\n`;
+    }
+    md += `\n---\n\n`;
+    
+    // Categories
+    for (const [category, repos] of sorted) {
+        const description = CATEGORIES[category]?.description || "";
+        md += `## ${category}\n\n`;
+        if (description) md += `*${description}*\n\n`;
+        md += `**${repos.length} repositories**\n\n`;
+        
+        if (repos.length === 0) {
+            md += `*Empty - add repos manually*\n\n`;
+        } else {
+            for (const repo of repos.sort((a, b) => b.stargazers_count - a.stargazers_count)) {
+                md += `- [${repo.full_name}](${repo.html_url}) ⭐${repo.stargazers_count.toLocaleString()}\n`;
+                if (repo.description) {
+                    md += `  > ${repo.description.slice(0, 120)}${repo.description.length > 120 ? "..." : ""}\n`;
+                }
+            }
+        }
+        md += `\n---\n\n`;
+    }
+    
+    const blob = new Blob([md], { type: "text/markdown" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "github_stars_organized.md";
+    a.click();
+}
+
+function downloadJSON() {
+    const data = {
+        generated: new Date().toISOString(),
+        total_repos: allRepos.length,
+        categories: categorizedRepos
+    };
+    
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "github_stars_organized.json";
+    a.click();
+}
+</script>
+</body>
+</html>
