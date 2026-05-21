@@ -75,6 +75,7 @@ Key files:
 
 - License: [MIT](./LICENSE)
 - Contribution guide: [CONTRIBUTING.md](./CONTRIBUTING.md)
+- Security policy: [SECURITY.md](./SECURITY.md)
 - Direct push strategy: [docs/direct-push-options.md](./docs/direct-push-options.md)
 - GitHub launch guide: [docs/open-source-github-launch.md](./docs/open-source-github-launch.md)
 

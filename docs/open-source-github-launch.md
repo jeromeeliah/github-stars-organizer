@@ -30,6 +30,7 @@ These files should exist before public launch:
 - [README.md](/Users/jeromeeliah/Developer/tools/github-stars-organizer/README.md:1)
 - [LICENSE](/Users/jeromeeliah/Developer/tools/github-stars-organizer/LICENSE:1)
 - [CONTRIBUTING.md](/Users/jeromeeliah/Developer/tools/github-stars-organizer/CONTRIBUTING.md:1)
+- [SECURITY.md](/Users/jeromeeliah/Developer/tools/github-stars-organizer/SECURITY.md:1)
 - [docs/direct-push-options.md](/Users/jeromeeliah/Developer/tools/github-stars-organizer/docs/direct-push-options.md:1)
 - [docs/implementation-plan.md](/Users/jeromeeliah/Developer/tools/github-stars-organizer/docs/implementation-plan.md:1)
 
