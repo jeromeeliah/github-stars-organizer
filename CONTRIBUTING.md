@@ -32,3 +32,8 @@ Good pull requests usually include:
 - A short summary of the user-facing change
 - Notes about testing
 - Any API or privacy implications
+
+For project context before larger changes, read:
+
+- `docs/direct-push-options.md`
+- `docs/open-source-github-launch.md`
