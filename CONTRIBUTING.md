@@ -4,10 +4,11 @@ Thanks for contributing to GitHub Stars Organizer.
 
 ## Workflow
 
-1. Create a branch for your change.
-2. Keep changes focused and easy to review.
-3. Run the test suite before opening a pull request.
-4. Update documentation when behavior or project positioning changes.
+1. Pick a ticket in [docs/backlog.md](docs/backlog.md) and create a `feat/pN-…` branch (see [docs/git-workflow.md](docs/git-workflow.md)).
+2. Prefer a git worktree under `.worktrees/` so docs and app branches do not collide.
+3. Keep changes focused and easy to review.
+4. Run `npm test` before opening a pull request.
+5. Update documentation when behavior or project positioning changes.
 
 ## Local Development
 

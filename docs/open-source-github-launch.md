@@ -8,9 +8,9 @@ Prepare GitHub Stars Organizer to live as a maintainable open-source project on 
 
 Describe the project as:
 
-> A lightweight, privacy-first GitHub stars review tool that helps you categorize repositories locally, export clean reports, and optionally push categories or selected subsets to GitHub Lists when GitHub permits it.
+> Fetch your GitHub stars in the browser, sort them with rules you can see and edit, and download Markdown/JSON — no account, token stays in RAM, GitHub Lists push is optional and may not work.
 
-Stay away from claiming fully reliable GitHub Lists automation until GitHub publishes a stable documented write API.
+The longer cellar goal lives in [docs/cellar-goal.md](cellar-goal.md). Stay away from claiming fully reliable GitHub Lists automation, hosted sync, or AI-only categorization.
 
 ## Repository Setup
 
@@ -89,13 +89,7 @@ Before announcing the project publicly:
 
 ## Roadmap Recommendation
 
-Priority order:
-
-1. Tighten review UX and live-token validation
-2. Add issue and PR templates
-3. Add `SECURITY.md`
-4. Add browser extension fallback for direct push
-5. Revisit richer categorization only after the push/export workflow is solid
+Canonical queue: [docs/backlog.md](backlog.md). v1 is persist + review inbox + sticky filings + wine-list Markdown. Lists and the browser extension are not the launch demo.
 
 ## Setup Steps For GitHub Publication
 
