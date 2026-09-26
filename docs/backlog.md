@@ -1,6 +1,6 @@
 # Backlog
 
-Source of truth until a GitHub remote exists. After `gh repo create`, open one issue per ticket with the same id in the title.
+Remote: [jeromeeliah/github-stars-organizer](https://github.com/jeromeeliah/github-stars-organizer). P0-1/2/3 were migrated to Issues and closed as shipped on PR #1; remaining backlog items stay as open Issues. This file remains the narrative queue.
 
 Joint pass (2026-09-15): [UX review](docs/reviews/ux-faang.md) + [indie review](docs/reviews/indie-hacker.md). Details in those notes.
 

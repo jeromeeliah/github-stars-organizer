@@ -19,6 +19,7 @@ First public cut of the local-first stars cellar.
 
 ### Notes
 
+- Public remote: https://github.com/jeromeeliah/github-stars-organizer — tag `v0.1.0` points at the feature tip; merge PR #1 into `main` after UI verify.
 - Lists write remains undocumented and optional. Exports are the reliable product surface.
 - Keyboard triage (P0-4) and wine-list Markdown polish (P1-1) are still backlog.
 
