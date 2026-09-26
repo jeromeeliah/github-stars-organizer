@@ -36,16 +36,12 @@ These files should exist before public launch:
 
 ## Suggested First GitHub Additions
 
-Add these after the initial public push:
+Already on this branch: issue templates (`bug report`, `feature request`, `direct push compatibility report`), pull request template, and `SECURITY.md`.
 
-1. Issue templates:
-   `bug report`, `feature request`, `direct push compatibility report`
-2. Pull request template:
-   summary, testing, token/privacy impact, GitHub Lists impact
-3. `SECURITY.md`:
-   how to report vulnerabilities, especially anything involving tokens
-4. `CHANGELOG.md`:
-   keep release notes crisp from the first public version onward
+Still add after the initial public push:
+
+1. `CHANGELOG.md` — keep release notes crisp from the first public version onward
+2. Migrate `docs/tickets/` into GitHub Issues (one issue per ticket id) once the remote exists
 
 ## Release Messaging
 
