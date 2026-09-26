@@ -16,6 +16,7 @@ Open `http://localhost:4173/github_stars_organizer.html`. There is no `npm insta
 - `github_stars_organizer.html` — shell, CSS, token field
 - `src/app.js` — DOM, in-memory session, event handlers (not unit-tested)
 - `src/organizer.js` — pure rules, scoring, exports (tested)
+- `src/cellarStore.js` — persist, sticky filings, inbox helpers (tested)
 - `src/githubApi.js` — only GitHub REST boundary (tested)
 - `scripts/github-stars-bridge.mjs` — maintainer Playwright helper, not the product
 - `docs/` — notes, not runtime
@@ -32,7 +33,7 @@ Keep categorization/export pure so Node can test it. Keep GitHub I/O in `githubA
 
 ## Git
 
-Worktrees live in `.worktrees/` (gitignored). Branch prefixes: `docs/` for documentation, `feat/p0-` … `feat/p3-` for product work. See `docs/git-workflow.md` on `docs/cellar-backlog`. No GitHub remote is configured yet; do not invent one.
+Worktrees live in `.worktrees/` (gitignored). Branch prefixes: `docs/` for documentation, `feat/p0-` … `feat/p3-` for product work. See `docs/git-workflow.md`. Public remote: `https://github.com/jeromeeliah/github-stars-organizer`. Do not add a second remote.
 
 ## Diagrams
 

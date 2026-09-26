@@ -24,6 +24,7 @@ Single package, vanilla HTML + ES modules. No Next.js, Vite, Express, or monorep
 github_stars_organizer.html   # layout, CSS, token field
 src/app.js                    # DOM, session state, event handlers
 src/organizer.js              # rules, scoring, exports (pure, tested)
+src/cellarStore.js            # IndexedDB cellar, sticky filings, inbox (tested)
 src/githubApi.js              # only GitHub REST boundary
 tests/                        # Node built-in test runner
 docs/                         # product/architecture notes, not runtime
@@ -38,7 +39,7 @@ Version `0.1.0`, `"private": true`. Quality gate is local `npm test` plus a manu
 
 ## Data Models
 
-**No database, ORM, migrations, seeds, or browser persistence** (`localStorage` / IndexedDB are unused). Durable output is a user download.
+**No database, ORM, or migrations.** Same-origin IndexedDB may cache taxonomy, assignments, reviewed flags, and the last star snapshot. The GitHub token is never written. Portable JSON export/import is the durable snapshot.
 
 Session lives in `src/app.js` `state`: token, raw repos, taxonomy, grouped results, selection/filters.
 
@@ -87,10 +88,11 @@ Nothing in-repo for Docker, Vercel, Netlify, Fly, Terraform, or GitHub Actions. 
 ## Key Files to Know
 
 - `src/organizer.js` — product brain: taxonomy, scoring, confidence, portable JSON/Markdown
+- `src/cellarStore.js` — IndexedDB cache, JSON import, sticky filings, inbox helpers; never the token
 - `src/githubApi.js` — stars pagination + experimental Lists; keep all GitHub HTTP here
 - `src/app.js` — UI state machine; do not bury categorization rules here
 - `github_stars_organizer.html` — entry URL and token/privacy copy
-- `tests/organizer.test.js` / `tests/githubApi.test.js` — required before behavior changes
+- `tests/organizer.test.js` / `tests/githubApi.test.js` / `tests/cellarStore.test.js` — required before behavior changes
 - `docs/direct-push-options.md` — why Lists are experimental and what fallbacks exist
 - `docs/implementation-plan.md` — architecture increments and category model
 - `README.md` — human source of truth for run/token/positioning

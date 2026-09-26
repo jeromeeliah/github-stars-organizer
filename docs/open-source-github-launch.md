@@ -38,10 +38,10 @@ These files should exist before public launch:
 
 Already on this branch: issue templates (`bug report`, `feature request`, `direct push compatibility report`), pull request template, and `SECURITY.md`.
 
-Still add after the initial public push:
+Already on the public remote:
 
-1. `CHANGELOG.md` — keep release notes crisp from the first public version onward
-2. Migrate `docs/tickets/` into GitHub Issues (one issue per ticket id) once the remote exists
+1. `CHANGELOG.md` — v0.1.0 notes are in the repo; keep them crisp from here onward
+2. Tickets migrated to GitHub Issues — P0-1/2/3 closed as shipped; P0-4 and P1-1 remain open
 
 ## Release Messaging
 
