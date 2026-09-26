@@ -455,7 +455,7 @@
 
       <section class="panel">
         <h2>How To Apply</h2>
-        <p class="hint">1. Analyze your stars. 2. Use search, category filter, and <strong>Needs review only</strong> to narrow a subset. 3. Tick the repositories you want. 4. Apply a category to the selected subset or push that subset to one GitHub List if the experimental endpoint is available.</p>
+        <p class="hint">1. Analyze or import a cellar JSON. 2. The default view is the <strong>inbox</strong> (unfiled rows). 3. File a row to shrink the queue. 4. Export JSON is the portable snapshot; this browser may cache the same cellar without the token. 5. Subset push to GitHub Lists is experimental.</p>
       </section>
 
       <section class="panel">
@@ -475,6 +475,7 @@
 
       <section class="panel">
         <h2>Portable Files</h2>
+        <p class="hint">JSON is the reload file. This browser also caches taxonomy, filings, and the last star snapshot in IndexedDB — never the token.</p>
         <div class="actions">
           <button id="exportJson" class="secondary">Export JSON</button>
           <button id="exportMarkdown" class="secondary">Markdown</button>
@@ -483,13 +484,18 @@
             Import taxonomy
             <input id="importTaxonomy" type="file" accept="application/json">
           </label>
+          <label class="file-button">
+            Import cellar JSON
+            <input id="importCellar" type="file" accept="application/json">
+          </label>
+          <button id="clearCellar" class="secondary">Clear this cellar</button>
         </div>
       </section>
 
       <section class="panel">
         <h2>GitHub Lists</h2>
-        <p id="listsNote" class="hint">Lists sync is checked after analysis because GitHub does not expose it as a stable documented REST workflow.</p>
-        <button id="syncLists" class="secondary" disabled>Push all non-empty categories</button>
+        <p id="listsNote" class="hint">Lists sync is experimental and undocumented. Prefer subset push. Existing lists are reused by name.</p>
+        <button id="syncLists" class="secondary" disabled>Last-resort: push all non-empty categories</button>
       </section>
     </aside>
 
@@ -513,8 +519,8 @@
               <option value="all">All categories</option>
             </select>
             <label class="toggle" for="reviewOnly">
-              <input id="reviewOnly" type="checkbox">
-              Needs review only
+              <input id="reviewOnly" type="checkbox" checked>
+              Inbox only
             </label>
           </div>
           <p id="selectionSummary" class="selection-summary">0 selected · 0 visible</p>

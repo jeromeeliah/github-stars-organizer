@@ -1,9 +1,23 @@
 import {
   addRepoToList,
   createList,
+  describeGitHubError,
   fetchAllStars,
   fetchExistingLists,
+  findListByName,
 } from "./githubApi.js";
+import {
+  applyStickyFilings,
+  buildCellarSnapshot,
+  clearCellar,
+  inboxCount,
+  isInboxRow,
+  loadCellar,
+  parsePortableExport,
+  recordAssignment,
+  saveCellar,
+  setReviewedFlag,
+} from "./cellarStore.js";
 import {
   categorizeRepos,
   createCategory,
@@ -17,13 +31,15 @@ const state = {
   token: "",
   repos: [],
   categories: normalizeCategories(DEFAULT_CATEGORIES),
+  assignments: {},
+  reviewed: {},
   grouped: null,
   existingLists: [],
   selectedCategory: "all",
   bulkCategory: DEFAULT_CATEGORIES[0].id,
   selectedRepoIds: new Set(),
   searchQuery: "",
-  reviewOnly: false,
+  reviewOnly: true,
   listsAvailable: false,
   isBusy: false,
 };
@@ -46,6 +62,8 @@ const els = {
   exportMarkdown: document.querySelector("#exportMarkdown"),
   exportTaxonomy: document.querySelector("#exportTaxonomy"),
   importTaxonomy: document.querySelector("#importTaxonomy"),
+  importCellar: document.querySelector("#importCellar"),
+  clearCellar: document.querySelector("#clearCellar"),
   syncLists: document.querySelector("#syncLists"),
   listsNote: document.querySelector("#listsNote"),
   selectFiltered: document.querySelector("#selectFiltered"),
@@ -77,7 +95,7 @@ els.reviewOnly.addEventListener("change", () => {
 });
 els.exportJson.addEventListener("click", () => {
   if (state.grouped) {
-    downloadJson("github-stars-organized.json", exportPortableJson(state.grouped));
+    downloadJson("github-stars-organized.json", currentPortableExport());
   }
 });
 els.exportMarkdown.addEventListener("click", () => {
@@ -87,6 +105,8 @@ els.exportMarkdown.addEventListener("click", () => {
 });
 els.exportTaxonomy.addEventListener("click", () => downloadJson("github-stars-taxonomy.json", state.categories));
 els.importTaxonomy.addEventListener("change", importTaxonomy);
+els.importCellar.addEventListener("change", importCellarFile);
+els.clearCellar.addEventListener("click", clearThisCellar);
 els.syncLists.addEventListener("click", syncGitHubLists);
 els.selectFiltered.addEventListener("click", selectVisibleRepos);
 els.clearSelected.addEventListener("click", clearSelection);
@@ -94,7 +114,8 @@ els.applyBulkCategory.addEventListener("click", bulkMoveSelected);
 els.selectedListName.addEventListener("input", updateActionAvailability);
 els.pushSelected.addEventListener("click", pushSelectedToGitHubList);
 
-renderEmpty();
+els.reviewOnly.checked = true;
+restoreCellar();
 
 async function analyzeStars() {
   const token = els.token.value.trim();
@@ -118,14 +139,23 @@ async function analyzeStars() {
       },
     });
 
-    state.grouped = categorizeRepos(state.repos, state.categories);
+    if (state.repos.length === 0) {
+      state.grouped = applyGrouped();
+      await persistCellar();
+      renderAll();
+      setStatus("This GitHub account has zero starred repositories. The cellar is empty, not filtered.", "info");
+      return;
+    }
+
+    state.grouped = applyGrouped();
     setProgress(84);
+    await persistCellar();
     await checkListsSupport(token);
     setProgress(100);
     renderAll();
-    setStatus(`Review ready: ${state.grouped.metrics.total} repositories loaded. Filter, select a subset, then apply or export.`, "success");
+    setStatus(`Review inbox: ${inboxCount(state.grouped.results)} still unfiled of ${state.grouped.metrics.total} loaded.`, "success");
   } catch (error) {
-    setStatus(error.message, "error");
+    setStatus(describeGitHubError(error, error.rateLimit), "error");
   } finally {
     setBusy(false);
   }
@@ -163,7 +193,7 @@ function addManualCategory() {
   els.categoryName.value = "";
   els.categoryKeywords.value = "";
   recategorize();
-  setStatus(`Added category: ${category.name}.`, "success");
+  setStatus(`Added category: ${category.name}. Filed rows stayed put.`, "success");
 }
 
 function moveRepo(repoId, categoryId) {
@@ -171,11 +201,8 @@ function moveRepo(repoId, categoryId) {
   const result = state.grouped?.results.find((item) => String(item.repo.id) === String(repoId));
   if (!target || !result) return;
 
-  result.primaryCategory = target;
-  result.confidence = "manual";
-  result.explanations = ["manual override"];
-  rebuildGroupsFromResults();
-  renderAll();
+  fileResult(result, target);
+  persistAndRender(`Filed ${result.repo.full_name} into ${target.name}.`);
 }
 
 function bulkMoveSelected() {
@@ -187,16 +214,24 @@ function bulkMoveSelected() {
     return;
   }
 
+  let filed = 0;
   for (const result of state.grouped.results) {
     if (!state.selectedRepoIds.has(String(result.repo.id))) continue;
-    result.primaryCategory = target;
-    result.confidence = "manual";
-    result.explanations = ["manual override"];
+    fileResult(result, target);
+    filed += 1;
   }
 
-  rebuildGroupsFromResults();
-  renderAll();
-  setStatus(`Applied ${target.name} to ${state.selectedRepoIds.size} selected repositories.`, "success");
+  persistAndRender(`Filed ${filed} selected repositories into ${target.name}.`);
+}
+
+function fileResult(result, target) {
+  const repoId = String(result.repo.id);
+  result.primaryCategory = target;
+  result.confidence = "manual";
+  result.explanations = ["manual override"];
+  result.reviewed = true;
+  state.assignments = recordAssignment(state.assignments, repoId, target.id);
+  state.reviewed = setReviewedFlag(state.reviewed, repoId, true);
 }
 
 function toggleRepoSelection(repoId, checked) {
@@ -233,21 +268,16 @@ async function pushSelectedToGitHubList() {
 
   const selectedResults = state.grouped.results.filter((result) => state.selectedRepoIds.has(String(result.repo.id)));
   setBusy(true);
-  setStatus(`Pushing ${selectedResults.length} selected repositories to GitHub List "${listName}". This uses an experimental endpoint.`, "info");
+  setStatus(`Pushing ${selectedResults.length} selected repositories to GitHub List "${listName}". Experimental endpoint.`, "info");
 
   try {
-    const list = await createList(state.token, {
-      name: listName,
-      description: `Selected subset pushed from GitHub Stars Organizer (${selectedResults.length} repositories)`,
-    });
-
+    const list = await ensureList(listName, `Selected subset pushed from GitHub Stars Organizer (${selectedResults.length} repositories)`);
     for (const result of selectedResults) {
       await addRepoToList(state.token, list.id, result.repo.id);
     }
-
-    setStatus(`Created GitHub List "${listName}" with ${selectedResults.length} selected repositories.`, "success");
+    setStatus(`GitHub List "${list.name}" now includes ${selectedResults.length} selected repositories.`, "success");
   } catch (error) {
-    setStatus(`${error.message}. If this endpoint is unavailable on your account, use Markdown/JSON export instead.`, "error");
+    setStatus(`${describeGitHubError(error)}. Exports still work.`, "error");
   } finally {
     setBusy(false);
   }
@@ -255,48 +285,52 @@ async function pushSelectedToGitHubList() {
 
 function recategorize() {
   if (state.repos.length === 0) {
+    persistCellar();
     renderCategories();
     renderFilterControls();
     return;
   }
 
-  state.grouped = categorizeRepos(state.repos, state.categories);
-  renderAll();
+  state.grouped = applyGrouped();
+  persistAndRender();
+}
+
+function applyGrouped() {
+  const grouped = categorizeRepos(state.repos, state.categories);
+  return applyStickyFilings(grouped, {
+    assignments: state.assignments,
+    reviewed: state.reviewed,
+    categories: state.categories,
+  });
 }
 
 function rebuildGroupsFromResults() {
-  const groups = new Map();
-
-  for (const result of state.grouped.results) {
-    const category = result.primaryCategory;
-    const group = groups.get(category.id) || { ...category, repositories: [] };
-    group.repositories.push(result);
-    groups.set(category.id, group);
-  }
-
-  state.grouped.categories = state.categories.map((category) => ({
-    ...category,
-    repositories: groups.get(category.id)?.repositories || [],
-  }));
-
-  state.grouped.metrics = {
-    total: state.grouped.results.length,
-    categorized: state.grouped.results.filter((item) => !item.primaryCategory.isDefault).length,
-    uncategorized: state.grouped.results.filter((item) => item.primaryCategory.isDefault).length,
-    lowConfidence: state.grouped.results.filter((item) => item.confidence !== "high").length,
-  };
+  state.grouped = applyStickyFilings(state.grouped, {
+    assignments: state.assignments,
+    reviewed: state.reviewed,
+    categories: state.categories,
+  });
 }
 
 async function checkListsSupport(token) {
   try {
     state.existingLists = await fetchExistingLists(token);
     state.listsAvailable = true;
-    els.listsNote.textContent = `Experimental Lists endpoint responded. Existing GitHub Lists found: ${state.existingLists.length}. Category sync and selected-subset push are available.`;
+    els.listsNote.textContent = `Experimental Lists endpoint responded. Existing GitHub Lists: ${state.existingLists.length}. Prefer subset push; full-category push is last-resort.`;
   } catch (error) {
     state.existingLists = [];
     state.listsAvailable = false;
-    els.listsNote.textContent = "GitHub does not document a stable public Lists API. If direct push is unavailable on your account, use exports and GitHub's native Stars UI.";
+    els.listsNote.textContent = "GitHub does not document a stable public Lists API. If direct push is unavailable, use exports. Lists stay experimental.";
   }
+}
+
+async function ensureList(name, description) {
+  const existing = findListByName(state.existingLists, name);
+  if (existing) return existing;
+
+  const list = await createList(state.token, { name, description });
+  state.existingLists = [...state.existingLists, list];
+  return list;
 }
 
 async function syncGitHubLists() {
@@ -304,54 +338,117 @@ async function syncGitHubLists() {
 
   const categories = state.grouped.categories.filter((category) => category.repositories.length > 0 && !category.isDefault);
   setBusy(true);
-  setStatus(`Pushing ${categories.length} non-empty categories to GitHub Lists. This uses an experimental endpoint.`, "info");
+  setStatus(`Last-resort: pushing ${categories.length} non-empty categories to experimental GitHub Lists. Prefer subset push.`, "info");
 
   let created = 0;
+  let reused = 0;
   let failed = 0;
 
   for (const category of categories) {
     try {
-      const list = await createList(state.token, {
-        name: category.name,
-        description: category.description || "Organized by GitHub Stars Organizer",
-      });
+      const already = findListByName(state.existingLists, category.name);
+      const list = await ensureList(category.name, category.description || "Organized by GitHub Stars Organizer");
+      if (already) reused += 1;
+      else created += 1;
 
       for (const result of category.repositories) {
         await addRepoToList(state.token, list.id, result.repo.id);
       }
 
-      created++;
-      setStatus(`Pushed ${created}/${categories.length} categories: ${category.name}`, "info");
+      setStatus(`Category push ${created + reused}/${categories.length}: ${category.name}${already ? " (reused list)" : ""}`, "info");
     } catch (error) {
-      failed++;
+      failed += 1;
     }
   }
 
   setBusy(false);
-  setStatus(`Category push finished. Created: ${created}. Failed: ${failed}.`, failed > 0 ? "error" : "success");
+  setStatus(`Category push finished. Created: ${created}. Reused: ${reused}. Failed: ${failed}.`, failed > 0 ? "error" : "success");
 }
 
 function importTaxonomy(event) {
-  const file = event.target.files?.[0];
-  if (!file) return;
-
-  const reader = new FileReader();
-  reader.onload = () => {
-    try {
-      const data = JSON.parse(String(reader.result));
-      if (!Array.isArray(data)) {
-        throw new Error("Taxonomy file must contain an array.");
-      }
-      state.categories = normalizeCategories(data);
-      recategorize();
-      setStatus(`Imported ${state.categories.length} categories. Read Later and Uncategorized were preserved if missing.`, "success");
-    } catch (error) {
-      setStatus(error.message, "error");
-    } finally {
-      event.target.value = "";
+  readJsonFile(event, (data) => {
+    if (!Array.isArray(data)) {
+      throw new Error("Taxonomy file must contain an array.");
     }
-  };
-  reader.readAsText(file);
+    state.categories = normalizeCategories(data);
+    recategorize();
+    setStatus(`Imported ${state.categories.length} categories. Filed rows stayed put.`, "success");
+  });
+}
+
+function importCellarFile(event) {
+  readJsonFile(event, (data) => {
+    const parsed = parsePortableExport(data);
+    applyImportedCellar(parsed);
+    persistAndRender(`Imported cellar JSON: ${state.repos.length} repositories. Token was not read.`);
+  });
+}
+
+function applyImportedCellar(parsed) {
+  state.categories = normalizeCategories(parsed.categories.length ? parsed.categories : DEFAULT_CATEGORIES);
+  state.assignments = parsed.assignments;
+  state.reviewed = parsed.reviewed;
+  state.repos = parsed.repos;
+  state.selectedRepoIds.clear();
+  state.grouped = state.repos.length > 0 ? applyGrouped() : null;
+}
+
+async function restoreCellar() {
+  try {
+    const cellar = await loadCellar();
+    if (!cellar) {
+      renderEmpty();
+      return;
+    }
+
+    applyImportedCellar(cellar);
+    if (state.grouped) renderAll();
+    else renderEmpty();
+    setStatus(`Restored cellar from this browser (${cellar.savedAt}). Token was not stored.`, "success");
+  } catch (error) {
+    renderEmpty();
+    setStatus(error.message, "error");
+  }
+}
+
+async function clearThisCellar() {
+  await clearCellar();
+  state.repos = [];
+  state.assignments = {};
+  state.reviewed = {};
+  state.grouped = null;
+  state.selectedRepoIds.clear();
+  state.categories = normalizeCategories(DEFAULT_CATEGORIES);
+  renderEmpty();
+  setStatus("Cleared this cellar. The GitHub token was never stored.", "success");
+}
+
+function persistAndRender(message) {
+  rebuildGroupsFromResults();
+  persistCellar();
+  if (state.grouped) renderAll();
+  else renderEmpty();
+  if (message) setStatus(message, "success");
+}
+
+async function persistCellar() {
+  try {
+    await saveCellar(buildCellarSnapshot({
+      categories: state.categories,
+      assignments: state.assignments,
+      reviewed: state.reviewed,
+      repos: state.repos,
+    }));
+  } catch (error) {
+    setStatus(error.message, "error");
+  }
+}
+
+function currentPortableExport() {
+  return exportPortableJson(state.grouped, {
+    assignments: state.assignments,
+    reviewed: state.reviewed,
+  });
 }
 
 function renderAll() {
@@ -368,20 +465,44 @@ function renderEmpty() {
     metric("Repos", "0"),
     metric("Categorized", "0"),
     metric("Uncategorized", "0"),
-    metric("Needs review", "0"),
+    metric("Inbox", "0"),
   );
-  els.repoList.replaceChildren(emptyState("Fetch your stars to review categories, apply a subset, or export clean files."));
+  const message = state.repos.length === 0
+    ? "Empty cellar. Import github-stars-organized.json or analyze stars. The token stays in RAM."
+    : "Fetch your stars to review categories, apply a subset, or export clean files.";
+  els.repoList.replaceChildren(emptyState(message));
   updateActionAvailability();
 }
 
 function renderMetrics() {
-  const { total, categorized, uncategorized, lowConfidence } = state.grouped.metrics;
+  const { total, categorized, uncategorized } = state.grouped.metrics;
+  const inbox = inboxCount(state.grouped.results);
+  const inboxMetric = metric("Inbox", inbox);
+  inboxMetric.tabIndex = 0;
+  inboxMetric.setAttribute("role", "button");
+  inboxMetric.title = "Show the review inbox";
+  inboxMetric.addEventListener("click", showInbox);
+  inboxMetric.addEventListener("keydown", (event) => {
+    if (event.key === "Enter" || event.key === " ") {
+      event.preventDefault();
+      showInbox();
+    }
+  });
+
   els.metrics.replaceChildren(
     metric("Repos", total),
     metric("Categorized", categorized),
     metric("Uncategorized", uncategorized),
-    metric("Needs review", lowConfidence),
+    inboxMetric,
   );
+}
+
+function showInbox() {
+  state.reviewOnly = true;
+  state.selectedCategory = "all";
+  els.reviewOnly.checked = true;
+  renderFilterControls();
+  renderRepos();
 }
 
 function renderCategories() {
@@ -425,13 +546,14 @@ function renderFilterControls() {
     state.bulkCategory = state.categories[0]?.id || "";
   }
   els.bulkCategory.value = state.bulkCategory;
+  els.reviewOnly.checked = state.reviewOnly;
   renderSelectionSummary();
   updateActionAvailability();
 }
 
 function renderRepos() {
   if (!state.grouped) {
-    els.repoList.replaceChildren(emptyState("Fetch your stars to start reviewing repositories."));
+    els.repoList.replaceChildren(emptyState(emptyListMessage()));
     renderSelectionSummary();
     updateActionAvailability();
     return;
@@ -439,7 +561,7 @@ function renderRepos() {
 
   const results = getVisibleResults();
   if (results.length === 0) {
-    els.repoList.replaceChildren(emptyState("No repositories match this filter."));
+    els.repoList.replaceChildren(emptyState(emptyListMessage()));
     renderSelectionSummary();
     updateActionAvailability();
     return;
@@ -450,12 +572,25 @@ function renderRepos() {
   updateActionAvailability();
 }
 
+function emptyListMessage() {
+  if (!state.grouped && state.repos.length === 0) {
+    return "Empty cellar. Import a portable JSON snapshot or analyze stars.";
+  }
+  if (state.grouped && state.grouped.results.length === 0) {
+    return "This GitHub account has zero starred repositories.";
+  }
+  if (state.reviewOnly && state.grouped && inboxCount(state.grouped.results) === 0) {
+    return "Inbox is clear. Filed, Read Later, and reviewed rows are hidden.";
+  }
+  return "No repositories match this filter. Clear search or turn off Needs review.";
+}
+
 function getVisibleResults() {
   if (!state.grouped) return [];
 
   return state.grouped.results.filter((result) => {
     const categoryMatch = state.selectedCategory === "all" || result.primaryCategory.id === state.selectedCategory;
-    const reviewMatch = !state.reviewOnly || result.confidence !== "high";
+    const reviewMatch = !state.reviewOnly || isInboxRow(result);
     const haystack = [
       result.repo.full_name,
       result.repo.description,
@@ -578,7 +713,8 @@ function emptyState(message) {
 function renderSelectionSummary() {
   const visibleCount = getVisibleResults().length;
   const selectedCount = state.selectedRepoIds.size;
-  els.selectionSummary.textContent = `${selectedCount} selected · ${visibleCount} visible`;
+  const inbox = state.grouped ? inboxCount(state.grouped.results) : 0;
+  els.selectionSummary.textContent = `${selectedCount} selected · ${visibleCount} visible · ${inbox} in inbox`;
 }
 
 function setBusy(isBusy) {
@@ -596,6 +732,8 @@ function updateActionAvailability() {
   els.exportJson.disabled = state.isBusy || !hasGrouped;
   els.exportMarkdown.disabled = state.isBusy || !hasGrouped;
   els.exportTaxonomy.disabled = state.isBusy || state.categories.length === 0;
+  els.importCellar.disabled = state.isBusy;
+  els.clearCellar.disabled = state.isBusy;
   els.syncLists.disabled = state.isBusy || !hasGrouped || !state.listsAvailable;
   els.selectFiltered.disabled = state.isBusy || !hasGrouped;
   els.clearSelected.disabled = state.isBusy || !hasSelection;
@@ -623,6 +761,23 @@ function normalizeCategories(inputCategories) {
   }
 
   return normalized;
+}
+
+function readJsonFile(event, onData) {
+  const file = event.target.files?.[0];
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onload = () => {
+    try {
+      onData(JSON.parse(String(reader.result)));
+    } catch (error) {
+      setStatus(error.message, "error");
+    } finally {
+      event.target.value = "";
+    }
+  };
+  reader.readAsText(file);
 }
 
 function setStatus(message, type) {

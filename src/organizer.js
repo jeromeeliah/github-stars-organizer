@@ -229,7 +229,12 @@ export function categorizeRepos(repos, categories = DEFAULT_CATEGORIES) {
   };
 }
 
-export function exportPortableJson(grouped) {
+export function exportPortableJson(grouped, options = {}) {
+  const reviewed = {};
+  for (const result of grouped.results || []) {
+    if (result.reviewed) reviewed[String(result.repo.id)] = true;
+  }
+
   return {
     generatedAt: grouped.generatedAt,
     metrics: grouped.metrics,
@@ -248,6 +253,8 @@ export function exportPortableJson(grouped) {
       description: category.description,
       repositories: category.repositories.map((result) => serializeRepo(result.repo, category.id)),
     })),
+    assignments: { ...(options.assignments || {}) },
+    reviewed: { ...reviewed, ...(options.reviewed || {}) },
   };
 }
 

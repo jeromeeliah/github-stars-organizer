@@ -3,7 +3,9 @@ import assert from "node:assert/strict";
 
 import {
   buildGitHubHeaders,
+  describeGitHubError,
   fetchAllStars,
+  findListByName,
   getNextPageUrl,
   getRateLimit,
 } from "../src/githubApi.js";
@@ -91,4 +93,16 @@ test("surfaces GitHub API error status and message", async () => {
     () => fetchAllStars("ghp_abcdefghijklmnopqrstuvwxyz1234567890", { fetcher }),
     /GitHub API error 401: Bad credentials/,
   );
+});
+
+test("describes 401, 403, and 429 without dumping raw GitHub JSON", () => {
+  assert.match(describeGitHubError({ status: 401, message: "Bad credentials" }), /token/i);
+  assert.match(describeGitHubError({ status: 429, rateLimit: { reset: 1770000000 } }), /429/);
+  assert.match(describeGitHubError({ status: 403, message: "forbidden" }), /403/);
+});
+
+test("reuses an existing GitHub List by name", () => {
+  const existing = { id: 9, name: "Read Later" };
+  assert.equal(findListByName([existing], "read later"), existing);
+  assert.equal(findListByName([existing], "New Shelf"), null);
 });

@@ -104,10 +104,46 @@ async function experimentalListRequest(token, path, options = {}) {
   return response.status === 204 ? null : response.json();
 }
 
+export function describeGitHubError(error, rateLimit = {}) {
+  const status = error?.status || Number(String(error?.message || "").match(/\b(401|403|429)\b/)?.[1]);
+  const reset = formatRateLimitReset(rateLimit.reset ?? error?.rateLimit?.reset);
+
+  if (status === 401) {
+    return "GitHub rejected the token (401). Check that it is a current PAT and that Starring: Read is enabled.";
+  }
+  if (status === 403) {
+    return reset
+      ? `GitHub forbade this request (403). If this is a rate limit, it resets ${reset}.`
+      : "GitHub forbade this request (403). Confirm token permissions, or wait if you hit a secondary rate limit.";
+  }
+  if (status === 429) {
+    return reset
+      ? `GitHub rate-limited this request (429). Try again ${reset}.`
+      : "GitHub rate-limited this request (429). Wait and retry.";
+  }
+  return error?.message || "GitHub request failed.";
+}
+
+export function findListByName(lists, name) {
+  const wanted = String(name || "").trim().toLowerCase();
+  if (!wanted) return null;
+  return (lists || []).find((list) => String(list?.name || "").trim().toLowerCase() === wanted) || null;
+}
+
+function formatRateLimitReset(reset) {
+  if (!reset) return "";
+  const date = new Date(Number(reset) * 1000);
+  if (Number.isNaN(date.getTime())) return "";
+  return `at ${date.toLocaleTimeString()}`;
+}
+
 async function createGitHubError(response, fallbackMessage = "GitHub API error") {
   const data = await response.json().catch(() => ({}));
   const message = data.message || response.statusText || fallbackMessage;
-  return new Error(`${fallbackMessage} ${response.status}: ${message}`);
+  const error = new Error(`${fallbackMessage} ${response.status}: ${message}`);
+  error.status = response.status;
+  error.rateLimit = getRateLimit(response);
+  return error;
 }
 
 function numberHeader(headers, name) {
