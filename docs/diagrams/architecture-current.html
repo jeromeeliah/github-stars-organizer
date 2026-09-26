@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Current app · Architecture</title>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --color-paper:   #f6f3ee;
+      --color-ink:     #20211f;
+      --color-muted:   #686b63;
+      --color-accent:  #176b55;
+      --font-sans:     'Geist', system-ui, sans-serif;
+      --font-serif:    'Instrument Serif', serif;
+      --font-mono:     'Geist Mono', ui-monospace, monospace;
+    }
+    body {
+      font-family: var(--font-sans);
+      background: var(--color-paper);
+      color: var(--color-ink);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 3rem 2rem;
+    }
+    .frame { max-width: 1200px; width: 100%; }
+    .eyebrow {
+      font-family: var(--font-mono);
+      font-size: 0.66rem;
+      font-weight: 500;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--color-muted);
+      margin-bottom: 0.5rem;
+    }
+    h1 {
+      font-family: var(--font-serif);
+      font-size: clamp(1.5rem, 2.4vw + 0.75rem, 2rem);
+      font-weight: 400;
+      letter-spacing: -0.02em;
+      line-height: 1.15;
+      color: var(--color-ink);
+      margin-bottom: 1.5rem;
+    }
+    svg { width: 100%; min-width: 900px; display: block; }
+  </style>
+</head>
+<body>
+  <div class="frame">
+    <p class="eyebrow">Architecture · Diagram Design</p>
+    <h1>One tab, no server, RAM-only token</h1>
+
+    <svg viewBox="0 0 1000 500" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="architecture-current-title architecture-current-desc">
+      <title id="architecture-current-title">One tab, no server, RAM-only token</title>
+      <desc id="architecture-current-desc">Architecture of the current browser app: the user pastes a token into the HTML shell, app.js holds session state in memory, organizer.js scores stars locally, and githubApi.js is the only path to GitHub REST. Downloads are durable; Lists write is optional and experimental.</desc>
+      <defs>
+        <marker id="arrow" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#686b63"/></marker>
+        <marker id="arrow-accent" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#176b55"/></marker>
+        <marker id="arrow-link" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#0e4f3f"/></marker>
+      </defs>
+
+      <rect width="100%" height="100%" fill="#f6f3ee"/>
+
+      <rect x="184" y="72" width="544" height="296" rx="8" fill="rgba(32,33,31,0.02)" stroke="rgba(32,33,31,0.10)" stroke-width="0.8"/>
+      <rect x="400" y="76" width="112" height="12" rx="2" fill="#f6f3ee"/>
+      <text x="456" y="85" fill="rgba(32,33,31,0.40)" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.14em">BROWSER TAB</text>
+
+      <rect x="736" y="72" width="216" height="296" rx="8" fill="rgba(32,33,31,0.02)" stroke="rgba(32,33,31,0.10)" stroke-width="0.8"/>
+      <rect x="804" y="76" width="80" height="12" rx="2" fill="#f6f3ee"/>
+      <text x="844" y="85" fill="rgba(32,33,31,0.40)" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.14em">GITHUB.COM</text>
+
+      <line x1="168" y1="208" x2="196" y2="208" stroke="#686b63" stroke-width="1.2" marker-end="url(#arrow)"/>
+      <line x1="344" y1="208" x2="372" y2="208" stroke="#686b63" stroke-width="1.2" marker-end="url(#arrow)"/>
+      <line x1="536" y1="208" x2="564" y2="208" stroke="#176b55" stroke-width="1.4" marker-end="url(#arrow-accent)"/>
+      <line x1="712" y1="208" x2="748" y2="208" stroke="#0e4f3f" stroke-width="1.2" marker-end="url(#arrow-link)"/>
+      <line x1="456" y1="248" x2="456" y2="284" stroke="#686b63" stroke-width="1.2" marker-end="url(#arrow)"/>
+      <path d="M 424,248 V 264 H 280 Q 272,264 272,272 V 284" fill="none" stroke="#686b63" stroke-width="1.2" marker-end="url(#arrow)"/>
+      <path d="M 640,240 V 256 H 824 Q 832,256 832,264 V 284" fill="none" stroke="#686b63" stroke-width="1" stroke-dasharray="4,3" marker-end="url(#arrow)"/>
+
+      <rect x="176" y="188" width="36" height="12" rx="2" fill="#f6f3ee"/>
+      <text x="194" y="197" fill="#686b63" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.06em">OPEN</text>
+      <rect x="348" y="188" width="28" height="12" rx="2" fill="#f6f3ee"/>
+      <text x="362" y="197" fill="#686b63" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.06em">DOM</text>
+      <rect x="536" y="188" width="32" height="12" rx="2" fill="#f6f3ee"/>
+      <text x="552" y="197" fill="#176b55" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.06em">PAT</text>
+      <rect x="716" y="188" width="36" height="12" rx="2" fill="#f6f3ee"/>
+      <text x="734" y="197" fill="#0e4f3f" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.06em">REST</text>
+      <rect x="464" y="256" width="40" height="12" rx="2" fill="#f6f3ee"/>
+      <text x="484" y="265" fill="#686b63" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.06em">SCORE</text>
+      <rect x="300" y="248" width="44" height="12" rx="2" fill="#f6f3ee"/>
+      <text x="322" y="257" fill="#686b63" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.06em">EXPORT</text>
+      <rect x="700" y="248" width="56" height="12" rx="2" fill="#f6f3ee"/>
+      <text x="728" y="257" fill="#686b63" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.06em">OPTIONAL</text>
+
+      <rect x="40" y="176" width="128" height="64" rx="6" fill="#f6f3ee"/>
+      <rect x="40" y="176" width="128" height="64" rx="6" fill="rgba(104,107,99,0.10)" stroke="#8a8d86" stroke-width="1"/>
+      <rect x="48" y="184" width="28" height="12" rx="2" fill="transparent" stroke="rgba(138,141,134,0.40)" stroke-width="0.8"/>
+      <text x="62" y="193" fill="#8a8d86" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">USER</text>
+      <text x="104" y="216" fill="#20211f" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">You</text>
+      <text x="104" y="232" fill="#686b63" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">localhost:4173</text>
+
+      <rect x="200" y="176" width="144" height="64" rx="6" fill="#f6f3ee"/>
+      <rect x="200" y="176" width="144" height="64" rx="6" fill="#ffffff" stroke="#20211f" stroke-width="1"/>
+      <rect x="208" y="184" width="28" height="12" rx="2" fill="transparent" stroke="rgba(32,33,31,0.40)" stroke-width="0.8"/>
+      <text x="222" y="193" fill="#20211f" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">HTML</text>
+      <text x="272" y="216" fill="#20211f" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Page shell</text>
+      <text x="272" y="232" fill="#686b63" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">organizer.html</text>
+
+      <rect x="376" y="168" width="160" height="80" rx="6" fill="#f6f3ee"/>
+      <rect x="376" y="168" width="160" height="80" rx="6" fill="rgba(23,107,85,0.08)" stroke="#176b55" stroke-width="1.2"/>
+      <rect x="384" y="176" width="28" height="12" rx="2" fill="transparent" stroke="rgba(23,107,85,0.40)" stroke-width="0.8"/>
+      <text x="398" y="185" fill="#176b55" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">APP</text>
+      <text x="456" y="212" fill="#176b55" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Session</text>
+      <text x="456" y="228" fill="#686b63" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">src/app.js · RAM</text>
+
+      <rect x="568" y="176" width="144" height="64" rx="6" fill="#f6f3ee"/>
+      <rect x="568" y="176" width="144" height="64" rx="6" fill="#ffffff" stroke="#20211f" stroke-width="1"/>
+      <rect x="576" y="184" width="28" height="12" rx="2" fill="transparent" stroke="rgba(32,33,31,0.40)" stroke-width="0.8"/>
+      <text x="590" y="193" fill="#20211f" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">API</text>
+      <text x="640" y="216" fill="#20211f" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">GitHub I/O</text>
+      <text x="640" y="232" fill="#686b63" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">src/githubApi.js</text>
+
+      <rect x="752" y="176" width="160" height="64" rx="6" fill="#f6f3ee"/>
+      <rect x="752" y="176" width="160" height="64" rx="6" fill="rgba(32,33,31,0.03)" stroke="rgba(32,33,31,0.30)" stroke-width="1"/>
+      <rect x="760" y="184" width="28" height="12" rx="2" fill="transparent" stroke="rgba(32,33,31,0.40)" stroke-width="0.8"/>
+      <text x="774" y="193" fill="#8a8d86" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">EXT</text>
+      <text x="832" y="216" fill="#20211f" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">REST v3</text>
+      <text x="832" y="232" fill="#686b63" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">/user/starred</text>
+
+      <rect x="200" y="288" width="144" height="64" rx="6" fill="#f6f3ee"/>
+      <rect x="200" y="288" width="144" height="64" rx="6" fill="rgba(32,33,31,0.05)" stroke="#686b63" stroke-width="1"/>
+      <rect x="208" y="296" width="36" height="12" rx="2" fill="transparent" stroke="rgba(104,107,99,0.40)" stroke-width="0.8"/>
+      <text x="226" y="305" fill="#686b63" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">FILE</text>
+      <text x="272" y="328" fill="#20211f" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Downloads</text>
+      <text x="272" y="344" fill="#686b63" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">json · md · taxonomy</text>
+
+      <rect x="376" y="288" width="160" height="64" rx="6" fill="#f6f3ee"/>
+      <rect x="376" y="288" width="160" height="64" rx="6" fill="rgba(32,33,31,0.05)" stroke="#686b63" stroke-width="1"/>
+      <rect x="384" y="296" width="36" height="12" rx="2" fill="transparent" stroke="rgba(104,107,99,0.40)" stroke-width="0.8"/>
+      <text x="402" y="305" fill="#686b63" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">PURE</text>
+      <text x="456" y="328" fill="#20211f" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Rules engine</text>
+      <text x="456" y="344" fill="#686b63" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">src/organizer.js</text>
+
+      <rect x="752" y="288" width="160" height="64" rx="6" fill="#f6f3ee"/>
+      <rect x="752" y="288" width="160" height="64" rx="6" fill="rgba(32,33,31,0.02)" stroke="rgba(32,33,31,0.20)" stroke-width="1" stroke-dasharray="4,3"/>
+      <rect x="760" y="296" width="28" height="12" rx="2" fill="transparent" stroke="rgba(32,33,31,0.30)" stroke-width="0.8"/>
+      <text x="774" y="305" fill="#8a8d86" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">OPT</text>
+      <text x="832" y="328" fill="#20211f" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Star Lists</text>
+      <text x="832" y="344" fill="#686b63" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">undocumented write</text>
+
+      <line x1="40" y1="432" x2="960" y2="432" stroke="rgba(32,33,31,0.10)" stroke-width="0.8"/>
+      <text x="40" y="448" fill="#686b63" font-size="8" font-family="'Geist Mono', monospace" letter-spacing="0.18em">LEGEND</text>
+      <rect x="40" y="460" width="16" height="8" fill="rgba(23,107,85,0.08)" stroke="#176b55" stroke-width="1"/>
+      <text x="64" y="468" fill="#686b63" font-size="8.5" font-family="'Geist', sans-serif">RAM session (never persisted)</text>
+      <rect x="280" y="460" width="16" height="8" fill="rgba(32,33,31,0.02)" stroke="rgba(32,33,31,0.20)" stroke-width="1" stroke-dasharray="4,3"/>
+      <text x="304" y="468" fill="#686b63" font-size="8.5" font-family="'Geist', sans-serif">Experimental Lists</text>
+      <line x1="480" y1="464" x2="504" y2="464" stroke="#0e4f3f" stroke-width="1.2"/>
+      <text x="512" y="468" fill="#686b63" font-size="8.5" font-family="'Geist', sans-serif">GitHub REST only</text>
+    </svg>
+  </div>
+</body>
+</html>
