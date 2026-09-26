@@ -10,8 +10,10 @@ Existing stars managers often become hosted dashboards, AI workspaces, or full k
 
 - Local-first browser workflow
 - No backend account
-- Token is not stored
+- Token is not stored (RAM only; cellar cache never writes it)
 - Categorization rules are visible and editable
+- Refresh keeps filings; import `github-stars-organized.json` to reload
+- Default view is the unfiled inbox
 - Exports work even when GitHub Lists sync is unavailable
 
 ## Run Locally

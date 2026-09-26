@@ -12,9 +12,9 @@ Joint pass (2026-09-15): [UX review](docs/reviews/ux-faang.md) + [indie review](
 
 | Id | Branch / worktree | Ticket |
 | --- | --- | --- |
-| P0-1 | `feat/p0-persist-cellar` · `.worktrees/p0-persist-cellar` | Persist taxonomy, assignments, reviewed flags, optional star snapshot. Never the token. Import portable JSON. Clear-this-cellar control. |
-| P0-2 | `feat/p0-review-inbox` · `.worktrees/p0-review-inbox` | Default landing is the inbox. Exclude `manual`, Read Later, and reviewed. Filing must shrink the queue. Needs-review metric is the inbox switch. |
-| P0-3 | `feat/p0-sticky-filings` · `.worktrees/p0-sticky-filings` | Adding a category or re-score must not throw away human moves. Lock filed rows. |
+| P0-1 | `feat/p0-persist-cellar` · done in `a9db0de` | Persist taxonomy, assignments, reviewed flags, optional star snapshot. Never the token. Import portable JSON. Clear-this-cellar control. |
+| P0-2 | `feat/p0-review-inbox` · done in `a9db0de` | Default landing is the inbox. Exclude `manual`, Read Later, and reviewed. Filing must shrink the queue. Needs-review metric is the inbox switch. |
+| P0-3 | `feat/p0-sticky-filings` · done in `a9db0de` | Adding a category or re-score must not throw away human moves. Lock filed rows. |
 | P0-4 | `feat/p0-keyboard-filing` | After P0-2: `j/k`, file/skip/Read Later, undo last. Do not block export-first OSS on this if inbox already ships. |
 | P0-5 | (fold into P0-2 / fetch) | 401/403/429 sentences, rate-limit reset time, empty cellar vs zero stars vs filter miss. Not its own branch. |
 
