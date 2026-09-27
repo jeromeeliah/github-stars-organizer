@@ -32,3 +32,5 @@ Wine-list Markdown (gist/commit/Discord). JSON is the private reload. Extension 
 ## Trims
 
 Cut Cuvée, weekly tasting, sommelier, hosted share, “push all lists,” and “taxonomy editor” from v1. Keep inbox-default, wine-list, JSON re-import, subset Lists labeled experimental. Keyboard after inbox, not a launch blocker by itself.
+
+Post-v1 taxonomy (compact shelves, optional grain, candidate chips, activity sort, BYOK notes-only) is specified in [docs/superpowers/specs/2026-09-26-cellar-taxonomy-design.md](../superpowers/specs/2026-09-26-cellar-taxonomy-design.md). That spec does not un-cut these items from v1.

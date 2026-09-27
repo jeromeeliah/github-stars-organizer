@@ -1,6 +1,6 @@
 # Codebase Onboarding
 
-Privacy-first **browser app** for reviewing starred GitHub repos. No backend, no runtime npm deps, no database. Categorization is local tokenized rules; GitHub Lists sync is experimental.
+Privacy-first **browser app** for reviewing starred GitHub repos. No backend, no runtime npm deps, no server database. Same-origin IndexedDB may cache the cellar; the GitHub token never goes there. Categorization is local tokenized rules; GitHub Lists sync is experimental.
 
 ## Quick Start
 
@@ -31,7 +31,7 @@ docs/                         # product/architecture notes, not runtime
 scripts/github-stars-bridge.mjs  # maintainer Playwright helper (not the app)
 ```
 
-**Start here:** `README.md` → `github_stars_organizer.html` → `src/organizer.js` → `src/githubApi.js` → `src/app.js`.
+**Start here:** `README.md` → `github_stars_organizer.html` → `src/organizer.js` → `src/cellarStore.js` → `src/githubApi.js` → `src/app.js`.
 
 Intended split (from `docs/implementation-plan.md`): keep categorization/export **pure** so Node can test it; keep the HTML as shell; keep GitHub I/O in one module.
 
@@ -39,9 +39,9 @@ Version `0.1.0`, `"private": true`. Quality gate is local `npm test` plus a manu
 
 ## Data Models
 
-**No database, ORM, or migrations.** Same-origin IndexedDB may cache taxonomy, assignments, reviewed flags, and the last star snapshot. The GitHub token is never written. Portable JSON export/import is the durable snapshot.
+**No server database, ORM, or migrations.** Same-origin IndexedDB (`src/cellarStore.js`) may cache taxonomy, assignments, reviewed flags, and the last star snapshot so a refresh keeps filings. The GitHub token is never written. Portable JSON export/import is the durable snapshot.
 
-Session lives in `src/app.js` `state`: token, raw repos, taxonomy, grouped results, selection/filters.
+Session lives in `src/app.js` `state`: token (RAM only), raw repos, taxonomy, grouped results, selection/filters. Reload restores the cellar from IndexedDB or an imported JSON file; the token field stays empty.
 
 Logical shapes in `src/organizer.js`:
 
@@ -103,6 +103,6 @@ Nothing in-repo for Docker, Vercel, Netlify, Fly, Terraform, or GitHub Actions. 
 1. **HTTP server required** — ES modules need `npm run start` (or any static server), not `file://`.
 2. **Zero product dependencies** — do not add a bundler or backend without an explicit product decision. The Playwright bridge is unlisted in `package.json` and needs Playwright installed separately; it is maintainer-only.
 3. **Lists will break** — undocumented `/user/lists` paths. Exports are the reliable path.
-4. **Token is tab-scoped** — refresh loses it; that is intended.
+4. **Token is tab-scoped** — refresh loses it; filings stay in the cellar. That is intended.
 5. **`brain/`** — local agent notes, not the app. Prefer README + this file for onboarding.
 6. **No CI** — `npm test` is the gate. PR template also expects a manual browser pass.

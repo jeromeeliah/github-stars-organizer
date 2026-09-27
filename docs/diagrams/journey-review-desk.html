@@ -53,9 +53,9 @@
     <p class="eyebrow">User journey · Diagram Design</p>
     <h1>One sitting at the review desk</h1>
 
-    <svg viewBox="0 0 1200 520" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="journey-review-desk-title journey-review-desk-desc">
+    <svg viewBox="0 0 1280 720" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="journey-review-desk-title journey-review-desk-desc">
       <title id="journey-review-desk-title">One sitting at the review desk</title>
-      <desc id="journey-review-desk-desc">User journey of filing GitHub stars in the current app: paste a token, fetch, review buckets, export, then refresh the tab and lose the session. Sentiment troughs at refresh, with pain markers for vanished work and the token prompt returning.</desc>
+      <desc id="journey-review-desk-desc">User journey of filing GitHub stars: paste a token in RAM, fetch, land in the unfiled inbox, file a sticky row, then export JSON or Markdown. Optional Lists stay off the happy path. The token never hits IndexedDB. Sentiment troughs at the inbox pile.</desc>
 
       <rect width="100%" height="100%" fill="#f6f3ee"/>
 
@@ -64,59 +64,60 @@
       <text x="388"  y="40" fill="#686b63" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.14em">STAGE 2</text>
       <text x="388"  y="60" fill="#20211f" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Fetch stars</text>
       <text x="612"  y="40" fill="#686b63" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.14em">STAGE 3</text>
-      <text x="612"  y="60" fill="#20211f" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Review buckets</text>
+      <text x="612"  y="60" fill="#20211f" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Land in inbox</text>
       <text x="836"  y="40" fill="#686b63" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.14em">STAGE 4</text>
-      <text x="836"  y="60" fill="#20211f" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Export a copy</text>
+      <text x="836"  y="60" fill="#20211f" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">File a row</text>
       <text x="1060" y="40" fill="#686b63" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.14em">STAGE 5</text>
-      <text x="1060" y="60" fill="#20211f" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Refresh the tab</text>
+      <text x="1060" y="60" fill="#20211f" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Export a copy</text>
 
-      <line x1="64" y1="100" x2="1160" y2="100" stroke="rgba(32,33,31,0.10)" stroke-width="0.8"/>
-      <line x1="64" y1="180" x2="1160" y2="180" stroke="rgba(32,33,31,0.10)" stroke-width="0.8"/>
-      <line x1="64" y1="260" x2="1160" y2="260" stroke="rgba(32,33,31,0.10)" stroke-width="0.8"/>
-      <text x="56" y="104" fill="#686b63" font-size="8" font-family="'Geist Mono', monospace" text-anchor="end" letter-spacing="0.10em">HIGH</text>
-      <text x="56" y="184" fill="#686b63" font-size="8" font-family="'Geist Mono', monospace" text-anchor="end" letter-spacing="0.10em">NEUTRAL</text>
-      <text x="56" y="264" fill="#686b63" font-size="8" font-family="'Geist Mono', monospace" text-anchor="end" letter-spacing="0.10em">LOW</text>
+      <line x1="64" y1="88" x2="1160" y2="88" stroke="rgba(32,33,31,0.10)" stroke-width="0.8"/>
+      <line x1="64" y1="168" x2="1160" y2="168" stroke="rgba(32,33,31,0.10)" stroke-width="0.8"/>
+      <line x1="64" y1="248" x2="1160" y2="248" stroke="rgba(32,33,31,0.10)" stroke-width="0.8"/>
+      <text x="56" y="92" fill="#686b63" font-size="8" font-family="'Geist Mono', monospace" text-anchor="end" letter-spacing="0.10em">HIGH</text>
+      <text x="56" y="172" fill="#686b63" font-size="8" font-family="'Geist Mono', monospace" text-anchor="end" letter-spacing="0.10em">NEUTRAL</text>
+      <text x="56" y="252" fill="#686b63" font-size="8" font-family="'Geist Mono', monospace" text-anchor="end" letter-spacing="0.10em">LOW</text>
 
-      <polyline points="164,180 388,140 612,220 836,140" fill="none" stroke="#686b63" stroke-width="1.5" stroke-linejoin="round"/>
-      <polyline points="836,140 1060,260" fill="none" stroke="#176b55" stroke-width="1.5" stroke-linejoin="round"/>
-      <circle cx="164"  cy="180" r="5" fill="#686b63"/>
-      <circle cx="388"  cy="140" r="5" fill="#686b63"/>
-      <circle cx="612"  cy="220" r="5" fill="#686b63"/>
-      <circle cx="836"  cy="140" r="5" fill="#686b63"/>
-      <circle cx="1060" cy="260" r="5" fill="#176b55"/>
+      <polyline points="164,168 388,128" fill="none" stroke="#686b63" stroke-width="1.5" stroke-linejoin="round"/>
+      <polyline points="388,128 612,248" fill="none" stroke="#176b55" stroke-width="1.5" stroke-linejoin="round"/>
+      <polyline points="612,248 836,88 1060,128" fill="none" stroke="#686b63" stroke-width="1.5" stroke-linejoin="round"/>
+      <circle cx="164"  cy="168" r="5" fill="#686b63"/>
+      <circle cx="388"  cy="128" r="5" fill="#686b63"/>
+      <circle cx="612"  cy="248" r="5" fill="#176b55"/>
+      <circle cx="836"  cy="88"  r="5" fill="#686b63"/>
+      <circle cx="1060" cy="128" r="5" fill="#686b63"/>
 
       <line x1="64" y1="280" x2="1160" y2="280" stroke="rgba(32,33,31,0.10)" stroke-width="0.8"/>
-      <line x1="64" y1="376" x2="1160" y2="376" stroke="rgba(32,33,31,0.10)" stroke-width="0.8"/>
-      <text x="56" y="328" fill="#686b63" font-size="8" font-family="'Geist Mono', monospace" text-anchor="end" letter-spacing="0.14em">ACTIONS</text>
-      <text x="56" y="408" fill="#686b63" font-size="8" font-family="'Geist Mono', monospace" text-anchor="end" letter-spacing="0.14em">TOUCHPOINTS</text>
+      <line x1="64" y1="392" x2="1160" y2="392" stroke="rgba(32,33,31,0.10)" stroke-width="0.8"/>
+      <text x="56" y="336" fill="#686b63" font-size="8" font-family="'Geist Mono', monospace" text-anchor="end" letter-spacing="0.14em">ACTIONS</text>
+      <text x="56" y="432" fill="#686b63" font-size="8" font-family="'Geist Mono', monospace" text-anchor="end" letter-spacing="0.14em">TOUCHPOINTS</text>
 
-      <text x="164"  y="300" fill="#20211f" font-size="12" font-family="'Geist', sans-serif" text-anchor="middle">Paste fine-grained token</text>
-      <text x="388"  y="300" fill="#20211f" font-size="12" font-family="'Geist', sans-serif" text-anchor="middle">Wait while pages load</text>
-      <text x="612"  y="300" fill="#20211f" font-size="12" font-family="'Geist', sans-serif" text-anchor="middle">Move a few, skip most</text>
-      <text x="836"  y="300" fill="#20211f" font-size="12" font-family="'Geist', sans-serif" text-anchor="middle">Download JSON or Markdown</text>
-      <text x="1060" y="300" fill="#20211f" font-size="12" font-family="'Geist', sans-serif" text-anchor="middle">Reload and start over</text>
+      <text x="164"  y="304" fill="#20211f" font-size="12" font-family="'Geist', sans-serif" text-anchor="middle">Paste token into RAM</text>
+      <text x="388"  y="304" fill="#20211f" font-size="12" font-family="'Geist', sans-serif" text-anchor="middle">Wait while pages load</text>
+      <text x="612"  y="304" fill="#20211f" font-size="12" font-family="'Geist', sans-serif" text-anchor="middle">Face the unfiled queue</text>
+      <text x="836"  y="304" fill="#20211f" font-size="12" font-family="'Geist', sans-serif" text-anchor="middle">File; it stays put</text>
+      <text x="1060" y="304" fill="#20211f" font-size="12" font-family="'Geist', sans-serif" text-anchor="middle">Download JSON or Markdown</text>
 
-      <rect x="968" y="312" width="184" height="16" rx="2" fill="rgba(23,107,85,0.08)" stroke="rgba(23,107,85,0.50)" stroke-width="0.8" stroke-dasharray="3,3"/>
-      <text x="1060" y="324" fill="#176b55" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.04em">SESSION IS GONE</text>
-      <rect x="968" y="332" width="184" height="16" rx="2" fill="rgba(23,107,85,0.08)" stroke="rgba(23,107,85,0.50)" stroke-width="0.8" stroke-dasharray="3,3"/>
-      <text x="1060" y="344" fill="#176b55" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.02em">TOKEN FIELD IS EMPTY AGAIN</text>
+      <rect x="520" y="320" width="184" height="16" rx="2" fill="rgba(23,107,85,0.08)" stroke="rgba(23,107,85,0.50)" stroke-width="0.8" stroke-dasharray="3,3"/>
+      <text x="612" y="332" fill="#176b55" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.04em">UNFILED QUEUE</text>
+      <rect x="520" y="340" width="184" height="16" rx="2" fill="rgba(23,107,85,0.08)" stroke="rgba(23,107,85,0.50)" stroke-width="0.8" stroke-dasharray="3,3"/>
+      <text x="612" y="352" fill="#176b55" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.04em">NO J/K YET · P0-4</text>
 
-      <text x="164"  y="412" fill="#686b63" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">password input</text>
-      <text x="388"  y="412" fill="#686b63" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">progress + status</text>
-      <text x="612"  y="412" fill="#686b63" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">category + repo lists</text>
-      <text x="836"  y="412" fill="#686b63" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">browser download</text>
-      <text x="1060" y="412" fill="#686b63" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">empty desk</text>
+      <text x="164"  y="428" fill="#686b63" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">password · never IDB</text>
+      <text x="388"  y="428" fill="#686b63" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">progress + live status</text>
+      <text x="612"  y="428" fill="#686b63" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">#inbox list</text>
+      <text x="836"  y="428" fill="#686b63" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">sticky · cellar cache</text>
+      <text x="1060" y="428" fill="#686b63" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">download · optional Lists</text>
 
-      <line x1="40" y1="464" x2="1160" y2="464" stroke="rgba(32,33,31,0.10)" stroke-width="0.8"/>
-      <text x="40" y="480" fill="#686b63" font-size="8" font-family="'Geist Mono', monospace" letter-spacing="0.18em">LEGEND</text>
-      <line x1="40" y1="496" x2="56" y2="496" stroke="#686b63" stroke-width="1.5"/>
-      <circle cx="48" cy="496" r="3" fill="#686b63"/>
-      <text x="64" y="500" fill="#686b63" font-size="8.5" font-family="'Geist', sans-serif">Sentiment curve</text>
-      <line x1="220" y1="496" x2="236" y2="496" stroke="#176b55" stroke-width="1.5"/>
-      <circle cx="228" cy="496" r="3" fill="#176b55"/>
-      <text x="244" y="500" fill="#686b63" font-size="8.5" font-family="'Geist', sans-serif">Trough stage</text>
-      <rect x="384" y="492" width="16" height="8" rx="2" fill="rgba(23,107,85,0.08)" stroke="rgba(23,107,85,0.50)" stroke-width="0.8" stroke-dasharray="3,3"/>
-      <text x="408" y="500" fill="#686b63" font-size="8.5" font-family="'Geist', sans-serif">Pain marker</text>
+      <line x1="64" y1="640" x2="1216" y2="640" stroke="rgba(32,33,31,0.10)" stroke-width="0.8"/>
+      <text x="64" y="664" fill="#686b63" font-size="8" font-family="'Geist Mono', monospace" letter-spacing="0.18em">LEGEND</text>
+      <line x1="64" y1="688" x2="80" y2="688" stroke="#686b63" stroke-width="1.5"/>
+      <circle cx="72" cy="688" r="3" fill="#686b63"/>
+      <text x="88" y="692" fill="#686b63" font-size="8.5" font-family="'Geist', sans-serif">Sentiment curve</text>
+      <line x1="256" y1="688" x2="272" y2="688" stroke="#176b55" stroke-width="1.5"/>
+      <circle cx="264" cy="688" r="3" fill="#176b55"/>
+      <text x="280" y="692" fill="#686b63" font-size="8.5" font-family="'Geist', sans-serif">Trough stage</text>
+      <rect x="432" y="684" width="16" height="8" rx="2" fill="rgba(23,107,85,0.08)" stroke="rgba(23,107,85,0.50)" stroke-width="0.8" stroke-dasharray="3,3"/>
+      <text x="456" y="692" fill="#686b63" font-size="8.5" font-family="'Geist', sans-serif">Pain marker</text>
     </svg>
   </div>
 </body>

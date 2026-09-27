@@ -45,17 +45,16 @@ Supported token prefixes:
 ## Current Features
 
 - Fetch starred repositories with GitHub REST pagination
-- Categorize using local tokenized rules
-- Show confidence and matched-rule explanations
-- Add custom categories manually
-- Move repositories between categories before export
-- Filter by category, search text, or `Needs review only`
+- Default landing is the unfiled inbox; filing a row marks it reviewed and shrinks the queue
+- Categorize using local tokenized rules, with confidence and matched-rule explanations
+- Sticky filings: manual moves, Read Later, and reviewed rows survive a re-score
+- Same-origin cellar cache in `src/cellarStore.js` (taxonomy, assignments, reviewed flags, last star snapshot). The token is never written to IndexedDB
+- Import `github-stars-organized.json`; **Clear this cellar** asks before wiping
+- Add custom categories and move repositories between them before export
+- Filter by category or search text
 - Select a subset and apply a category in one action
-- Try pushing a selected subset directly to one GitHub List when the experimental endpoint is available
-- Export minimized portable JSON
-- Export Markdown report
-- Export/import taxonomy JSON
-- Optional experimental GitHub Lists sync
+- Export minimized portable JSON, Markdown, and taxonomy JSON
+- Optional experimental GitHub Lists subset push when the undocumented endpoint is available
 
 ## Development
 
@@ -70,6 +69,7 @@ Key files:
 - `github_stars_organizer.html` - browser entry point and app layout
 - `src/app.js` - DOM/UI behavior
 - `src/organizer.js` - pure categorization and export logic
+- `src/cellarStore.js` - IndexedDB cellar, sticky filings, inbox helpers; never the token
 - `src/githubApi.js` - GitHub API boundary
 - `tests/` - Node tests for pure modules
 

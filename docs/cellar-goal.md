@@ -8,7 +8,7 @@ Visible rules, one sitting that produces a file you keep, your taxonomy. Exports
 
 - No account. Token stays in RAM (and is never written to IndexedDB or exports).
 - GitHub Lists push is optional and may fail. It is not the demo.
-- No AI magic in v1. Keyword rules stay inspectable.
+- No AI magic in v1. Keyword rules stay inspectable. Post-v1 BYOK notes (P3-3) stay optional, never silent recategorize, and never use the GitHub token. Taxonomy editor and grain are P1, not launch blockers — [2026-09-26 spec](superpowers/specs/2026-09-26-cellar-taxonomy-design.md).
 - Refresh must not erase filings. The cellar is the snapshot + taxonomy, not the PAT.
 
 ## Primary wedge

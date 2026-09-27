@@ -5,8 +5,10 @@ Editorial HTML+SVG from [diagram-design](https://github.com/cathrynlavery/diagra
 | File | Type | What it shows |
 | --- | --- | --- |
 | `architecture-current.html` | Architecture | Modules and the token trust boundary |
-| `journey-review-desk.html` | User journey | One-tab review flow and the refresh trough |
+| `journey-review-desk.html` | User journey | Inbox path: RAM token → fetch → file sticky → export. Trough is the unfiled queue, not a wiped session |
 | `loop-star-ocd.html` | Loop | Star → forget → search → despair → organize → star more |
-| `story-map-cellar.html` | Story map | Cellar (B) vs optional Cuvée (C), with the MVP cut |
+| `story-map-cellar.html` | Story map | Cellar (B) vs optional Cuvée (C), with the MVP cut and P1-3…P1-8 labels |
+| `status-workstreams.html` | Story map | Shipped / this branch / ahead. No heat score, no Expo desk |
+| `taxonomy-layers.html` | Layer stack | Shelves vs facets vs granular vs signals (compact-granular) |
 
 Brand: paper `#f6f3ee`, ink `#20211f`, accent `#176b55`. Size preset: `doc-wide`. Static, no motion.

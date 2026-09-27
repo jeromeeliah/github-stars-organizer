@@ -19,6 +19,21 @@ npm run start
 
 Open `http://localhost:4173/github_stars_organizer.html`.
 
+## Manual QA (desk)
+
+Local only. There is no GitHub Actions workflow yet (that is P2-3).
+
+1. `npm test`
+2. `npm run start` and open `http://localhost:4173/github_stars_organizer.html`
+3. Skip link reaches `#inbox`
+4. Fetch (or load a cellar snapshot): default view is the unfiled inbox
+5. Search a repo name; the list filters
+6. File one row into a category; inbox count shrinks
+7. **Clear this cellar** → cancel; the cellar stays
+8. Export JSON or Markdown; the download is readable
+
+Token stays in the password field only. Refresh may empty it; filings should still be in the cellar.
+
 ## Project Principles
 
 - Keep the app local-first and dependency-light.

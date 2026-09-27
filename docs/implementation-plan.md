@@ -20,7 +20,9 @@ The app stays browser-only and dependency-light. Pure behavior lives in modules 
 
 ## Category Model
 
-Default categories represent primary buckets:
+Primary shelves are the only filing home. Facets and signals are not categories. Optional granular children hang off a parent and stay behind a flag (default off). Full concept: [docs/superpowers/specs/2026-09-26-cellar-taxonomy-design.md](superpowers/specs/2026-09-26-cellar-taxonomy-design.md).
+
+Default primary buckets (today’s names; later rename-in-place toward shared wording, plus **Self-Hosted**):
 
 - AI & ML
 - AI Agents & Automation
@@ -39,7 +41,9 @@ Default categories represent primary buckets:
 - Read Later
 - Uncategorized
 
-Future facets should stay separate from primary categories: language, platform, intent, maturity, license, archived status, and recent activity.
+Facets stay separate from primary categories: language, archived status, license, activity window. Signals (stars, `pushed_at`) are row badges and sorts, not shelves. Do not promote Agenorit-style Agentic slices to defaults — those are P1-7 children.
+
+Rename keeps a stable `id` so sticky filings survive. GitHub Lists export may flatten children to the parent (32-list ceiling).
 
 ## Review Gates
 

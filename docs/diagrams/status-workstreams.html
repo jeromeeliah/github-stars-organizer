@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Where the cellar stands · Story map</title>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --color-paper:   #f6f3ee;
+      --color-ink:     #20211f;
+      --color-muted:   #686b63;
+      --color-accent:  #176b55;
+      --font-sans:     'Geist', system-ui, sans-serif;
+      --font-serif:    'Instrument Serif', serif;
+      --font-mono:     'Geist Mono', ui-monospace, monospace;
+    }
+    body {
+      font-family: var(--font-sans);
+      background: var(--color-paper);
+      color: var(--color-ink);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 3rem 2rem;
+    }
+    .frame { max-width: 1280px; width: 100%; }
+    .eyebrow {
+      font-family: var(--font-mono);
+      font-size: 0.66rem;
+      font-weight: 500;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--color-muted);
+      margin-bottom: 0.5rem;
+    }
+    h1 {
+      font-family: var(--font-serif);
+      font-size: clamp(1.5rem, 2.4vw + 0.75rem, 2rem);
+      font-weight: 400;
+      letter-spacing: -0.02em;
+      line-height: 1.15;
+      color: var(--color-ink);
+      margin-bottom: 1.5rem;
+    }
+    svg { width: 100%; min-width: 960px; display: block; }
+  </style>
+</head>
+<body>
+  <div class="frame">
+    <p class="eyebrow">User story map · Diagram Design</p>
+    <h1>Where the cellar stands</h1>
+
+    <svg viewBox="0 0 1280 720" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="status-workstreams-title status-workstreams-desc">
+      <title id="status-workstreams-title">Where the cellar stands</title>
+      <desc id="status-workstreams-desc">Story map of the stars cellar: shipped persist, inbox, sticky filings, and 401 copy; this branch is the taxonomy spec plus desk hygiene; ahead is keyboard, wine-list, chips, editor then grain, and optional BYOK notes that never file.</desc>
+
+      <rect width="100%" height="100%" fill="#f6f3ee"/>
+
+      <rect x="32" y="176" width="1216" height="80" fill="rgba(32,33,31,0.02)"/>
+      <rect x="32" y="352" width="1216" height="80" fill="rgba(32,33,31,0.02)"/>
+      <text x="48" y="220" fill="#686b63" font-size="8" font-family="'Geist Mono', monospace" letter-spacing="0.14em">SHIPPED</text>
+      <text x="48" y="308" fill="#686b63" font-size="8" font-family="'Geist Mono', monospace" letter-spacing="0.14em">THIS BRANCH</text>
+      <text x="48" y="396" fill="#686b63" font-size="8" font-family="'Geist Mono', monospace" letter-spacing="0.14em">AHEAD</text>
+
+      <line x1="116" y1="108" x2="116" y2="432" stroke="rgba(32,33,31,0.10)" stroke-width="0.8" stroke-dasharray="4,4"/>
+      <line x1="340" y1="108" x2="340" y2="432" stroke="rgba(32,33,31,0.10)" stroke-width="0.8" stroke-dasharray="4,4"/>
+      <line x1="564" y1="108" x2="564" y2="432" stroke="rgba(32,33,31,0.10)" stroke-width="0.8" stroke-dasharray="4,4"/>
+      <line x1="788" y1="108" x2="788" y2="432" stroke="rgba(32,33,31,0.10)" stroke-width="0.8" stroke-dasharray="4,4"/>
+      <line x1="1012" y1="108" x2="1012" y2="432" stroke="rgba(32,33,31,0.10)" stroke-width="0.8" stroke-dasharray="4,4"/>
+      <line x1="1236" y1="108" x2="1236" y2="432" stroke="rgba(32,33,31,0.10)" stroke-width="0.8" stroke-dasharray="4,4"/>
+
+      <rect x="128" y="40" width="200" height="64" rx="6" fill="rgba(32,33,31,0.05)" stroke="#686b63" stroke-width="1"/>
+      <text x="228" y="68" fill="#20211f" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Fetch the stars</text>
+      <text x="228" y="88" fill="#686b63" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.14em">ACTIVITY 1</text>
+      <rect x="352" y="40" width="200" height="64" rx="6" fill="rgba(32,33,31,0.05)" stroke="#686b63" stroke-width="1"/>
+      <text x="452" y="68" fill="#20211f" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Review the pile</text>
+      <text x="452" y="88" fill="#686b63" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.14em">ACTIVITY 2</text>
+      <rect x="576" y="40" width="200" height="64" rx="6" fill="rgba(32,33,31,0.05)" stroke="#686b63" stroke-width="1"/>
+      <text x="676" y="68" fill="#20211f" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">File into shelves</text>
+      <text x="676" y="88" fill="#686b63" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.14em">ACTIVITY 3</text>
+      <rect x="800" y="40" width="200" height="64" rx="6" fill="rgba(32,33,31,0.05)" stroke="#686b63" stroke-width="1"/>
+      <text x="900" y="68" fill="#20211f" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Take a copy home</text>
+      <text x="900" y="88" fill="#686b63" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.14em">ACTIVITY 4</text>
+      <rect x="1024" y="40" width="200" height="64" rx="6" fill="rgba(32,33,31,0.05)" stroke="#686b63" stroke-width="1"/>
+      <text x="1124" y="68" fill="#20211f" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Optional later</text>
+      <text x="1124" y="88" fill="#686b63" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.14em">ACTIVITY 5</text>
+
+      <rect x="144" y="120" width="168" height="32" rx="4" fill="#ffffff" stroke="#20211f" stroke-width="0.8"/>
+      <text x="228" y="140" fill="#20211f" font-size="12" font-family="'Geist', sans-serif" text-anchor="middle">Paste a PAT</text>
+      <rect x="368" y="120" width="168" height="32" rx="4" fill="#ffffff" stroke="#20211f" stroke-width="0.8"/>
+      <text x="452" y="140" fill="#20211f" font-size="12" font-family="'Geist', sans-serif" text-anchor="middle">Land in inbox</text>
+      <rect x="592" y="120" width="168" height="32" rx="4" fill="#ffffff" stroke="#20211f" stroke-width="0.8"/>
+      <text x="676" y="140" fill="#20211f" font-size="12" font-family="'Geist', sans-serif" text-anchor="middle">File a row</text>
+      <rect x="816" y="120" width="168" height="32" rx="4" fill="#ffffff" stroke="#20211f" stroke-width="0.8"/>
+      <text x="900" y="140" fill="#20211f" font-size="12" font-family="'Geist', sans-serif" text-anchor="middle">Download JSON</text>
+      <rect x="1040" y="120" width="168" height="32" rx="4" fill="#ffffff" stroke="#20211f" stroke-width="0.8"/>
+      <text x="1124" y="140" fill="#20211f" font-size="12" font-family="'Geist', sans-serif" text-anchor="middle">Skip Cuvée</text>
+
+      <rect x="144" y="192" width="168" height="48" rx="4" fill="#ffffff" stroke="#20211f" stroke-width="1"/>
+      <text x="156" y="210" fill="#20211f" font-size="12" font-weight="600" font-family="'Geist', sans-serif">Honest 401 copy</text>
+      <text x="156" y="226" fill="#686b63" font-size="9" font-family="'Geist Mono', monospace">P0-5 · folded into fetch</text>
+      <rect x="368" y="192" width="168" height="48" rx="4" fill="#ffffff" stroke="#20211f" stroke-width="1"/>
+      <text x="380" y="210" fill="#20211f" font-size="12" font-weight="600" font-family="'Geist', sans-serif">Inbox default</text>
+      <text x="380" y="226" fill="#686b63" font-size="9" font-family="'Geist Mono', monospace">P0-2 · queue shrinks</text>
+      <rect x="592" y="192" width="168" height="48" rx="4" fill="#ffffff" stroke="#20211f" stroke-width="1"/>
+      <text x="604" y="210" fill="#20211f" font-size="12" font-weight="600" font-family="'Geist', sans-serif">Sticky filings</text>
+      <text x="604" y="226" fill="#686b63" font-size="9" font-family="'Geist Mono', monospace">P0-3 · survive rescore</text>
+      <rect x="816" y="192" width="168" height="48" rx="4" fill="#ffffff" stroke="#20211f" stroke-width="1"/>
+      <text x="828" y="210" fill="#20211f" font-size="12" font-weight="600" font-family="'Geist', sans-serif">Persist cellar</text>
+      <text x="828" y="226" fill="#686b63" font-size="9" font-family="'Geist Mono', monospace">P0-1 · never the token</text>
+
+      <line x1="32" y1="256" x2="1248" y2="256" stroke="#176b55" stroke-width="1.5"/>
+      <rect x="1136" y="248" width="104" height="16" rx="2" fill="#f6f3ee"/>
+      <text x="1188" y="259" fill="#176b55" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.10em">RELEASE CUT</text>
+
+      <rect x="368" y="280" width="168" height="48" rx="4" fill="#ffffff" stroke="#20211f" stroke-width="1"/>
+      <text x="380" y="298" fill="#20211f" font-size="12" font-weight="600" font-family="'Geist', sans-serif">WIG hygiene</text>
+      <text x="380" y="314" fill="#686b63" font-size="9" font-family="'Geist Mono', monospace">skip · live · confirm</text>
+      <rect x="592" y="280" width="168" height="48" rx="4" fill="#ffffff" stroke="#20211f" stroke-width="1"/>
+      <text x="604" y="298" fill="#20211f" font-size="12" font-weight="600" font-family="'Geist', sans-serif">Taxonomy spec</text>
+      <text x="604" y="314" fill="#686b63" font-size="9" font-family="'Geist Mono', monospace">docs · no filing code</text>
+
+      <rect x="368" y="368" width="168" height="48" rx="4" fill="#ffffff" stroke="#20211f" stroke-width="1"/>
+      <text x="380" y="386" fill="#20211f" font-size="12" font-weight="600" font-family="'Geist', sans-serif">Keyboard + chips</text>
+      <text x="380" y="402" fill="#686b63" font-size="9" font-family="'Geist Mono', monospace">P0-4 · P1-5</text>
+      <rect x="592" y="368" width="168" height="48" rx="4" fill="#ffffff" stroke="#20211f" stroke-width="1"/>
+      <text x="604" y="386" fill="#20211f" font-size="12" font-weight="600" font-family="'Geist', sans-serif">Editor then grain</text>
+      <text x="604" y="402" fill="#686b63" font-size="9" font-family="'Geist Mono', monospace">P1-4 · P1-7/8</text>
+      <rect x="816" y="368" width="168" height="48" rx="4" fill="#ffffff" stroke="#20211f" stroke-width="1"/>
+      <text x="828" y="386" fill="#20211f" font-size="12" font-weight="600" font-family="'Geist', sans-serif">Wine-list Markdown</text>
+      <text x="828" y="402" fill="#686b63" font-size="9" font-family="'Geist Mono', monospace">P1-1 · still local</text>
+      <rect x="1040" y="368" width="168" height="48" rx="4" fill="rgba(23,107,85,0.05)" stroke="#176b55" stroke-width="1" stroke-dasharray="4,4"/>
+      <text x="1052" y="386" fill="#20211f" font-size="12" font-weight="600" font-family="'Geist', sans-serif">BYOK notes</text>
+      <text x="1052" y="402" fill="#686b63" font-size="9" font-family="'Geist Mono', monospace">P3-3 · never file</text>
+      <rect x="1152" y="372" width="40" height="12" rx="2" fill="transparent" stroke="#176b55" stroke-width="0.8"/>
+      <text x="1172" y="381" fill="#176b55" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">RISK</text>
+
+      <line x1="32" y1="640" x2="1248" y2="640" stroke="rgba(32,33,31,0.10)" stroke-width="0.8"/>
+      <text x="32" y="664" fill="#686b63" font-size="8" font-family="'Geist Mono', monospace" letter-spacing="0.18em">LEGEND</text>
+      <rect x="32" y="680" width="16" height="8" fill="#ffffff" stroke="#20211f" stroke-width="1"/>
+      <text x="56" y="688" fill="#686b63" font-size="8.5" font-family="'Geist', sans-serif">Story card</text>
+      <rect x="232" y="680" width="16" height="8" fill="rgba(23,107,85,0.05)" stroke="#176b55" stroke-width="1" stroke-dasharray="4,4"/>
+      <text x="256" y="688" fill="#686b63" font-size="8.5" font-family="'Geist', sans-serif">Highest risk</text>
+      <line x1="432" y1="684" x2="464" y2="684" stroke="#176b55" stroke-width="1.5"/>
+      <text x="480" y="688" fill="#686b63" font-size="8.5" font-family="'Geist', sans-serif">Release cut</text>
+    </svg>
+  </div>
+</body>
+</html>

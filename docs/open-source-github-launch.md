@@ -14,25 +14,29 @@ The longer cellar goal lives in [docs/cellar-goal.md](cellar-goal.md). Stay away
 
 ## Repository Setup
 
-Before publishing the repository:
+Done on the public remote (`jeromeeliah/github-stars-organizer`, public, Issues on):
 
-1. Choose the final GitHub repository name and short description.
-2. Push the current branch history and open a pull request into `main`.
-3. Enable GitHub Issues and Discussions.
-4. Enable branch protection on `main`.
-5. Add repository topics such as `github`, `stars`, `organizer`, `productivity`, `browser-app`, and `opensource`.
-6. Add a social preview image once the UI has been visually verified.
+1. Repository name and short description.
+2. History pushed; PR #1 (`feature/open-source-ready-organizer` → `main`) is open.
+3. GitHub Issues enabled. P0-1/2/3 closed as shipped; P0-4 and P1-1 remain open.
+
+Still open:
+
+4. Enable Discussions if you want a community surface.
+5. Enable branch protection on `main`.
+6. Add repository topics such as `github`, `stars`, `organizer`, `productivity`, `browser-app`, and `opensource`.
+7. Add a social preview image once the UI has been visually verified.
 
 ## Minimum Project Surface
 
-These files should exist before public launch:
+These files already exist on the public remote:
 
-- [README.md](/Users/jeromeeliah/Developer/tools/github-stars-organizer/README.md:1)
-- [LICENSE](/Users/jeromeeliah/Developer/tools/github-stars-organizer/LICENSE:1)
-- [CONTRIBUTING.md](/Users/jeromeeliah/Developer/tools/github-stars-organizer/CONTRIBUTING.md:1)
-- [SECURITY.md](/Users/jeromeeliah/Developer/tools/github-stars-organizer/SECURITY.md:1)
-- [docs/direct-push-options.md](/Users/jeromeeliah/Developer/tools/github-stars-organizer/docs/direct-push-options.md:1)
-- [docs/implementation-plan.md](/Users/jeromeeliah/Developer/tools/github-stars-organizer/docs/implementation-plan.md:1)
+- [README.md](../README.md)
+- [LICENSE](../LICENSE)
+- [CONTRIBUTING.md](../CONTRIBUTING.md)
+- [SECURITY.md](../SECURITY.md)
+- [docs/direct-push-options.md](direct-push-options.md)
+- [docs/implementation-plan.md](implementation-plan.md)
 
 ## Suggested First GitHub Additions
 
@@ -89,11 +93,9 @@ Canonical queue: [docs/backlog.md](backlog.md). v1 is persist + review inbox + s
 
 ## Setup Steps For GitHub Publication
 
-Once the repository exists on GitHub:
+Already done: `main` and `feature/open-source-ready-organizer` are on the remote; PR #1 is open; tag `v0.1.0` points at the feature tip.
 
-1. Push `main`
-2. Push `feature/open-source-ready-organizer`
-3. Open a pull request
-4. Merge after manual UI verification
-5. Tag the first release, for example `v0.1.0`
-6. Publish release notes that clearly call out experimental direct push
+Still to do:
+
+1. Merge PR #1 after a manual UI pass
+2. Confirm release notes still call out experimental direct push

@@ -1,5 +1,16 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+- Compact-granular taxonomy concept: spec, layer-stack diagram, and tickets P1-4…P1-8 plus P3-3. No filing-code change in this sitting.
+- Desk hygiene: skip link to inbox, polite live status, `:focus-visible`, `100dvh`, `tabular-nums`, `content-visibility` on rows, and a confirm before **Clear this cellar**.
+
+### Notes
+
+- Concept and hygiene land on `docs/cellar-taxonomy-concept`. Keyboard triage (P0-4) and wine-list Markdown (P1-1) stay ahead.
+
 ## [0.1.0] — 2026-09-26
 
 First public cut of the local-first stars cellar.
@@ -22,7 +33,3 @@ First public cut of the local-first stars cellar.
 - Public remote: https://github.com/jeromeeliah/github-stars-organizer — tag `v0.1.0` points at the feature tip; merge PR #1 into `main` after UI verify.
 - Lists write remains undocumented and optional. Exports are the reliable product surface.
 - Keyboard triage (P0-4) and wine-list Markdown polish (P1-1) are still backlog.
-
-## Unreleased
-
-Nothing yet.
