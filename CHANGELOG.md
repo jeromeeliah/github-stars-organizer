@@ -2,7 +2,9 @@
 
 ## Unreleased
 
-Nothing yet.
+### Changed
+
+- Markdown export is a shareable list: shelf, stars, language, description. Rule-match lines are no longer in the file. JSON stays the reload copy.
 
 ## [0.1.1] — 2026-09-27
 

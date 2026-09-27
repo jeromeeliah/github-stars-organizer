@@ -1,6 +1,6 @@
 # GitHub Stars Organizer
 
-Privacy-first, browser-only stars review desk. No backend, no runtime npm deps, no accounts. Dense human map: `ONBOARDING.md`. Product positioning: `README.md`, `docs/open-source-github-launch.md`.
+Privacy-first, browser-only stars review desk. No backend, no runtime npm deps, no accounts. Human map: `ONBOARDING.md`. Visitor landing: `README.md`.
 
 ## Commands
 
@@ -18,7 +18,6 @@ Open `http://localhost:4173/github_stars_organizer.html`. There is no `npm insta
 - `src/organizer.js` — pure rules, scoring, exports (tested)
 - `src/cellarStore.js` — persist, sticky filings, inbox helpers (tested)
 - `src/githubApi.js` — only GitHub REST boundary (tested)
-- `scripts/github-stars-bridge.mjs` — maintainer Playwright helper, not the product
 - `docs/` — notes, not runtime
 
 Keep categorization/export pure so Node can test it. Keep GitHub I/O in `githubApi.js`. Do not add a bundler, framework, or server to the core app.
@@ -37,4 +36,4 @@ Worktrees live in `.worktrees/` (gitignored). Branch prefixes: `docs/` for docum
 
 ## Diagrams
 
-Editorial HTML+SVG diagrams use the `diagram-design` skill (clone + local symlink; see `.cursor/skills/README.md`). Project marker: `.diagram-design` → profile `stars-cellar`. Do not copy that profile over the installed `style-guide.md`.
+Editorial HTML+SVG diagrams live in `docs/diagrams/`. Marker: `.diagram-design` → profile `stars-cellar`. The skill checkout stays local.

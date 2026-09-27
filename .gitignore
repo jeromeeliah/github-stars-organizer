@@ -5,3 +5,6 @@ dist/
 .worktrees/
 .playwright-mcp/
 .cursor/skills/diagram-design
+brain/
+docs/agents/
+scripts/

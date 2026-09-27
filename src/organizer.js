@@ -263,28 +263,35 @@ export function exportMarkdown(grouped) {
     "# GitHub Stars Organized",
     "",
     `Generated: ${grouped.generatedAt}`,
-    `Total repositories: ${grouped.metrics.total}`,
-    `Categorized: ${grouped.metrics.categorized}`,
-    `Uncategorized: ${grouped.metrics.uncategorized}`,
+    `${plural(grouped.metrics.total, "repository", "repositories")}. ${grouped.metrics.categorized} filed, ${grouped.metrics.uncategorized} still uncategorized.`,
     "",
   ];
 
   for (const category of grouped.categories) {
-    lines.push(`## ${category.name}`, "");
-    if (category.description) lines.push(`_${category.description}_`, "");
-    lines.push(`Repositories: ${category.repositories.length}`, "");
+    lines.push(`## ${category.name} · ${category.repositories.length}`, "");
+    if (category.description) lines.push(category.description, "");
 
     for (const result of [...category.repositories].sort((a, b) => (b.repo.stargazers_count || 0) - (a.repo.stargazers_count || 0))) {
-      const repo = result.repo;
-      lines.push(`- [${repo.full_name}](${repo.html_url}) - ${repo.stargazers_count?.toLocaleString?.() || 0} stars`);
-      if (repo.description) lines.push(`  - ${truncate(repo.description, 140)}`);
-      if (result.explanations.length > 0) lines.push(`  - Matched: ${result.explanations.join(", ")}`);
+      lines.push(markdownRepoLine(result));
+      if (result.repo.description) lines.push(`  ${truncate(result.repo.description, 140)}`);
     }
 
     lines.push("");
   }
 
   return `${lines.join("\n").trim()}\n`;
+}
+
+function plural(count, singular, pluralWord) {
+  return `${count} ${count === 1 ? singular : pluralWord}`;
+}
+
+function markdownRepoLine(result) {
+  const repo = result.repo;
+  const facts = [`${(repo.stargazers_count || 0).toLocaleString()} stars`];
+  if (repo.language) facts.push(repo.language);
+  if (repo.archived) facts.push("archived");
+  return `- [${repo.full_name}](${repo.html_url}) · ${facts.join(" · ")}`;
 }
 
 export function serializeRepo(repo, categoryId) {

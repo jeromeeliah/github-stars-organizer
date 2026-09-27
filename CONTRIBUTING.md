@@ -49,7 +49,4 @@ Good pull requests usually include:
 - Notes about testing
 - Any API or privacy implications
 
-For project context before larger changes, read:
-
-- `docs/direct-push-options.md`
-- `docs/open-source-github-launch.md`
+For Lists behavior, read `docs/direct-push-options.md`.
