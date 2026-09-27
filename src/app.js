@@ -585,7 +585,7 @@ function emptyListMessage() {
   if (state.reviewOnly && state.grouped && inboxCount(state.grouped.results) === 0) {
     return "Inbox is clear. Filed, Read Later, and reviewed rows are hidden.";
   }
-  return "No repositories match this filter. Clear search or turn off Needs review.";
+  return "No repositories match this filter. Clear search or turn off Inbox only.";
 }
 
 function getVisibleResults() {

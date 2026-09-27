@@ -93,7 +93,7 @@ Canonical queue: [docs/backlog.md](backlog.md). v1 is persist + review inbox + s
 
 ## Setup Steps For GitHub Publication
 
-Already done: `main` and `feature/open-source-ready-organizer` are on the remote; PR #1 is open; tag `v0.1.0` points at the feature tip.
+Already done: `main` and `feature/open-source-ready-organizer` are on the remote; PR #1 is open; tag `v0.1.0` is on the cellar line (`fac4a67`, the changelog cut). The branch tip has moved on with later docs.
 
 Still to do:
 
