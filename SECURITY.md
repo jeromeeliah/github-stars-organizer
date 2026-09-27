@@ -8,7 +8,7 @@ This project is pre-`1.0`. Security fixes are applied on the latest development 
 
 Please do not open a public GitHub issue for security-sensitive reports.
 
-Instead, report vulnerabilities privately to the maintainer through GitHub's private vulnerability reporting if it is enabled on the repository. If private reporting is not enabled yet, contact the maintainer directly before publishing details.
+Report privately with a [GitHub security advisory](https://github.com/jeromeeliah/github-stars-organizer/security/advisories/new). Do not open a public issue for a live token, an export leak, or a Lists write surprise.
 
 When reporting, include:
 

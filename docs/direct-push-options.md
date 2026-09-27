@@ -16,7 +16,7 @@ Use this order of operations:
 
 ## Option 1: Undocumented GitHub Lists Endpoint
 
-The app currently attempts direct push through the endpoints implemented in [src/githubApi.js](/Users/jeromeeliah/Developer/tools/github-stars-organizer/src/githubApi.js:44):
+The app currently attempts direct push through the endpoints in [`src/githubApi.js`](../src/githubApi.js):
 
 - `GET /user/lists`
 - `POST /user/lists`
@@ -104,6 +104,4 @@ For the public GitHub project, describe direct push like this:
 
 > Direct push is best-effort. The app first checks whether GitHub's hidden Lists endpoint responds for your account. If it does, the app can push categories or selected subsets directly. If it does not, export Markdown or JSON and manage the lists manually through GitHub's native Stars UI.
 
-## Next Build Step
-
-If the project invests further in direct push, the next highest-value addition is a browser extension fallback rather than Playwright-first automation.
+If Lists write stays dead, the next product path is a browser extension on `github.com`, not Playwright.

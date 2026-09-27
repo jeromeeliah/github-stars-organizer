@@ -5,6 +5,7 @@
 ### Changed
 
 - Markdown export is a shareable list: shelf, stars, language, description. Rule-match lines are no longer in the file. JSON stays the reload copy.
+- Public tree is the desk and the queue. Workshop notes stay local. Clear control says **Clear saved filings**.
 
 ## [0.1.1] — 2026-09-27
 

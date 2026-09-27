@@ -26,4 +26,4 @@ Shipped in `0.1.x`: persist, inbox, sticky filings, 401/403/429 copy, desk hygie
 | P2-3 | `npm test` in CI, GitHub Pages of the empty app |
 | P3-3 | Optional notes from a key the user brings. Never silent file. Never the GitHub token |
 
-Do not mention Cuvée in the README. Do not build a hosted dashboard.
+No hosted dashboard. The shareable artifact is the Markdown file.
