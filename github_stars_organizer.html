@@ -3,9 +3,12 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="light">
+  <meta name="theme-color" content="#f6f3ee">
   <title>GitHub Stars Organizer</title>
   <style>
     :root {
+      color-scheme: light;
       --bg: #f6f3ee;
       --panel: #fffdf8;
       --ink: #20211f;
@@ -22,6 +25,7 @@
 
     body {
       margin: 0;
+      touch-action: manipulation;
       background:
         linear-gradient(90deg, rgba(32, 33, 31, 0.04) 1px, transparent 1px),
         linear-gradient(180deg, rgba(32, 33, 31, 0.04) 1px, transparent 1px),
@@ -40,12 +44,29 @@
       font: inherit;
     }
 
+    .skip-link {
+      position: absolute;
+      left: 12px;
+      top: 12px;
+      z-index: 2;
+      padding: 8px 12px;
+      background: var(--accent);
+      color: #fff;
+      text-decoration: none;
+      border-radius: 6px;
+      transform: translateY(-200%);
+    }
+
+    .skip-link:focus-visible {
+      transform: none;
+    }
+
     .shell {
       display: grid;
       grid-template-columns: minmax(280px, 360px) minmax(0, 1fr);
       gap: 20px;
       max-width: 1440px;
-      min-height: 100vh;
+      min-height: 100dvh;
       margin: 0 auto;
       padding: 24px;
     }
@@ -105,9 +126,14 @@
       border-radius: 6px;
     }
 
-    input:focus,
-    select:focus {
+    input:focus-visible,
+    select:focus-visible,
+    button:focus-visible,
+    .file-button:focus-visible,
+    .skip-link:focus-visible,
+    summary:focus-visible {
       outline: 2px solid rgba(23, 107, 85, 0.22);
+      outline-offset: 2px;
       border-color: var(--accent);
     }
 
@@ -190,6 +216,7 @@
       display: block;
       font-size: 1.65rem;
       line-height: 1;
+      font-variant-numeric: tabular-nums;
     }
 
     .metric span {
@@ -292,6 +319,12 @@
       display: grid;
       gap: 10px;
       padding: 12px 14px;
+      content-visibility: auto;
+      contain-intrinsic-size: auto 140px;
+    }
+
+    #inbox {
+      scroll-margin-top: 16px;
     }
 
     .repo-main {
@@ -379,6 +412,7 @@
       background: #fbf8f2;
       color: var(--muted);
       font-size: 0.76rem;
+      font-variant-numeric: tabular-nums;
     }
 
     .badge-high {
@@ -434,6 +468,7 @@
   </style>
 </head>
 <body>
+  <a class="skip-link" href="#inbox">Skip to inbox</a>
   <div class="shell">
     <aside>
       <section class="brand">
@@ -445,7 +480,7 @@
         <h2>Connect</h2>
         <div class="field">
           <label for="token">GitHub token</label>
-          <input id="token" type="password" autocomplete="off" spellcheck="false" placeholder="github_pat_... or ghp_...">
+          <input id="token" type="password" name="github-token" autocomplete="off" spellcheck="false" placeholder="github_pat_… or ghp_…">
         </div>
         <p class="hint">Runs in this browser. The token is not stored and is only sent to GitHub API requests. Generate a fine-grained token at <a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noopener noreferrer">github.com/settings/personal-access-tokens/new</a>. For reading stars, choose your account as the resource owner and enable <strong>Starring: Read</strong>. If you want private starred repositories included, allow repository access to the repositories you need.</p>
         <div class="actions">
@@ -462,11 +497,11 @@
         <h2>Custom Category</h2>
         <div class="field">
           <label for="categoryName">Name</label>
-          <input id="categoryName" type="text" placeholder="Climate Tech">
+          <input id="categoryName" type="text" name="category-name" autocomplete="off" placeholder="Climate Tech">
         </div>
         <div class="field">
           <label for="categoryKeywords">Keywords</label>
-          <input id="categoryKeywords" type="text" placeholder="climate, energy, sustainability">
+          <input id="categoryKeywords" type="text" name="category-keywords" autocomplete="off" placeholder="climate, energy, sustainability…">
         </div>
         <div class="actions">
           <button id="addCategory" class="secondary">Add category</button>
@@ -500,8 +535,8 @@
     </aside>
 
     <main>
-      <div id="status" data-type="info">Ready. Add a token and analyze your stars.</div>
-      <progress id="progress" max="100" value="0"></progress>
+      <div id="status" data-type="info" role="status" aria-live="polite" aria-atomic="true">Ready. Add a token and analyze your stars.</div>
+      <progress id="progress" max="100" value="0" aria-label="Fetch progress"></progress>
       <section id="metrics" class="metrics" aria-label="Analysis metrics"></section>
 
       <section class="workspace">
@@ -512,9 +547,9 @@
           </div>
         </div>
 
-        <div>
+        <div id="inbox">
           <div class="repo-tools">
-            <input id="repoSearch" type="search" placeholder="Search name, description, language, topic">
+            <input id="repoSearch" type="search" name="repo-search" autocomplete="off" aria-label="Search repositories" placeholder="Search name, description, language, topic…">
             <select id="categoryFilter" aria-label="Filter repositories by category">
               <option value="all">All categories</option>
             </select>
@@ -531,7 +566,7 @@
             <button id="applyBulkCategory" class="secondary">Apply to selected</button>
           </div>
           <div class="batch-tools">
-            <input id="selectedListName" type="text" placeholder="GitHub List name for selected subset">
+            <input id="selectedListName" type="text" name="selected-list-name" autocomplete="off" placeholder="GitHub List name for selected subset…">
             <button id="pushSelected" class="secondary">Push selected subset</button>
           </div>
           <div id="repoList" class="repo-list"></div>

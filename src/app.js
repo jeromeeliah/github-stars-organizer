@@ -412,6 +412,9 @@ async function restoreCellar() {
 }
 
 async function clearThisCellar() {
+  const confirmed = globalThis.confirm("Clear this cellar? Filings in this browser will be removed. The GitHub token was never stored.");
+  if (!confirmed) return;
+
   await clearCellar();
   state.repos = [];
   state.assignments = {};
