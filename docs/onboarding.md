@@ -9,7 +9,7 @@ npm test
 npm run start
 ```
 
-Open `http://localhost:4173/github_stars_organizer.html`.
+Open `http://localhost:4173/`.
 
 - **Node** is required for tests (`node --test`). **Python 3** is required for `npm run start` (`python3 -m http.server 4173`).
 - Do **not** open the HTML via `file://` — ES module imports will fail.
@@ -21,7 +21,7 @@ Open `http://localhost:4173/github_stars_organizer.html`.
 Single package, vanilla HTML + ES modules. No Next.js, Vite, Express, or monorepo tooling.
 
 ```
-github_stars_organizer.html   # layout, CSS, token field
+index.html                    # layout, CSS, token field
 src/app.js                    # DOM, session state, event handlers
 src/organizer.js              # rules, scoring, exports (pure, tested)
 src/cellarStore.js            # IndexedDB cellar, sticky filings, inbox (tested)
@@ -30,7 +30,7 @@ tests/                        # Node built-in test runner
 docs/                         # notes, not runtime
 ```
 
-**Start here:** `README.md` → `github_stars_organizer.html` → `src/organizer.js` → `src/cellarStore.js` → `src/githubApi.js` → `src/app.js`.
+**Start here:** `README.md` → `index.html` → `src/organizer.js` → `src/cellarStore.js` → `src/githubApi.js` → `src/app.js`.
 
 Keep categorization and export **pure** so Node can test them. Keep GitHub I/O in `src/githubApi.js`.
 
@@ -78,7 +78,7 @@ Minimum documented scope for fetch: fine-grained **Starring: Read**. Lists write
 
 ## Deployment
 
-Nothing in-repo for Docker, Vercel, Netlify, Fly, Terraform, or GitHub Actions. Ship the repo root as static files (`github_stars_organizer.html` + `src/*.js`) on any static host. No build step, no env vars.
+Nothing in-repo for Docker, Vercel, Netlify, Fly, Terraform, or GitHub Actions. Ship the repo root as static files (`index.html` + `src/*.js`) on any static host. No build step, no env vars.
 
 `.github/` has issue/PR templates only. There is no deploy workflow.
 
@@ -88,7 +88,7 @@ Nothing in-repo for Docker, Vercel, Netlify, Fly, Terraform, or GitHub Actions. 
 - `src/cellarStore.js` — IndexedDB cache, JSON import, sticky filings, inbox helpers; never the token
 - `src/githubApi.js` — stars pagination + experimental Lists; keep all GitHub HTTP here
 - `src/app.js` — UI state machine; do not bury categorization rules here
-- `github_stars_organizer.html` — entry URL and token/privacy copy
+- `index.html` — entry URL and token/privacy copy
 - `tests/organizer.test.js` / `tests/githubApi.test.js` / `tests/cellarStore.test.js` — required before behavior changes
 - `docs/direct-push-options.md` — why Lists are experimental
 - `README.md` — how to run it and where the token goes

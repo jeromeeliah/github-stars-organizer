@@ -143,7 +143,7 @@ async function analyzeStars() {
       state.grouped = applyGrouped();
       await persistCellar();
       renderAll();
-      setStatus("This GitHub account has zero starred repositories. The cellar is empty, not filtered.", "info");
+      setStatus("This GitHub account has zero starred repositories. Nothing is filtered.", "info");
       return;
     }
 
@@ -380,7 +380,7 @@ function importCellarFile(event) {
   readJsonFile(event, (data) => {
     const parsed = parsePortableExport(data);
     applyImportedCellar(parsed);
-    persistAndRender(`Imported cellar JSON: ${state.repos.length} repositories. Token was not read.`);
+    persistAndRender(`Imported JSON: ${state.repos.length} repositories. Token was not read.`);
   });
 }
 
@@ -404,7 +404,7 @@ async function restoreCellar() {
     applyImportedCellar(cellar);
     if (state.grouped) renderAll();
     else renderEmpty();
-    setStatus(`Restored cellar from this browser (${cellar.savedAt}). Token was not stored.`, "success");
+    setStatus(`Restored filings from this browser (${cellar.savedAt}). Token was not stored.`, "success");
   } catch (error) {
     renderEmpty();
     setStatus(error.message, "error");
@@ -423,7 +423,7 @@ async function clearThisCellar() {
   state.selectedRepoIds.clear();
   state.categories = normalizeCategories(DEFAULT_CATEGORIES);
   renderEmpty();
-  setStatus("Cleared this cellar. The GitHub token was never stored.", "success");
+  setStatus("Cleared saved filings. The GitHub token was never stored.", "success");
 }
 
 function persistAndRender(message) {
@@ -471,7 +471,7 @@ function renderEmpty() {
     metric("Inbox", "0"),
   );
   const message = state.repos.length === 0
-    ? "Empty cellar. Import github-stars-organized.json or analyze stars. The token stays in RAM."
+    ? "Nothing filed yet. Import github-stars-organized.json or analyze stars. The token stays in the tab."
     : "Fetch your stars to review categories, apply a subset, or export clean files.";
   els.repoList.replaceChildren(emptyState(message));
   updateActionAvailability();
@@ -577,7 +577,7 @@ function renderRepos() {
 
 function emptyListMessage() {
   if (!state.grouped && state.repos.length === 0) {
-    return "Empty cellar. Import a portable JSON snapshot or analyze stars.";
+    return "Nothing filed yet. Import github-stars-organized.json or analyze stars.";
   }
   if (state.grouped && state.grouped.results.length === 0) {
     return "This GitHub account has zero starred repositories.";
