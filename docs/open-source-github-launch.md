@@ -17,14 +17,14 @@ The longer cellar goal lives in [docs/cellar-goal.md](cellar-goal.md). Stay away
 Done on the public remote (`jeromeeliah/github-stars-organizer`, public, Issues on):
 
 1. Repository name and short description.
-2. History pushed; PR #1 (`feature/open-source-ready-organizer` → `main`) is open.
+2. PR #1 and PR #7 are merged to `main`. Releases: [v0.1.0](https://github.com/jeromeeliah/github-stars-organizer/releases/tag/v0.1.0) and v0.1.1.
 3. GitHub Issues enabled. P0-1/2/3 closed as shipped; P0-4 and P1-1 remain open.
+4. Topics: `github`, `stars`, `organizer`, `productivity`, `browser-app`, `opensource`.
 
 Still open:
 
-4. Enable Discussions if you want a community surface.
-5. Enable branch protection on `main`.
-6. Add repository topics such as `github`, `stars`, `organizer`, `productivity`, `browser-app`, and `opensource`.
+5. Enable Discussions if you want a community surface.
+6. Enable branch protection on `main`.
 7. Add a social preview image once the UI has been visually verified.
 
 ## Minimum Project Surface
@@ -93,9 +93,6 @@ Canonical queue: [docs/backlog.md](backlog.md). v1 is persist + review inbox + s
 
 ## Setup Steps For GitHub Publication
 
-Already done: `main` and `feature/open-source-ready-organizer` are on the remote; PR #1 is open; tag `v0.1.0` is on the cellar line (`fac4a67`, the changelog cut). The branch tip has moved on with later docs.
+Already done: PR #1 and PR #7 are merged. Tag `v0.1.0` is `fac4a67`. Its release notes call out experimental Lists push. `v0.1.1` is the public README and desk hygiene.
 
-Still to do:
-
-1. Merge PR #1 after a manual UI pass
-2. Confirm release notes still call out experimental direct push
+Still open: Discussions, branch protection, and a social preview image.

@@ -35,7 +35,7 @@ scripts/github-stars-bridge.mjs  # maintainer Playwright helper (not the app)
 
 Intended split (from `docs/implementation-plan.md`): keep categorization/export **pure** so Node can test it; keep the HTML as shell; keep GitHub I/O in one module.
 
-Version `0.1.0`, `"private": true`. Quality gate is local `npm test` plus a manual browser pass — there is no CI workflow.
+Version `0.1.1`, `"private": true`. `"private"` blocks `npm publish`. The GitHub repository is public. Quality gate is local `npm test` plus a manual browser pass — there is no CI workflow.
 
 ## Data Models
 
