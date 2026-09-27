@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cellar first release · User story map</title>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --color-paper:   #f6f3ee;
+      --color-ink:     #20211f;
+      --color-muted:   #686b63;
+      --color-accent:  #176b55;
+      --font-sans:     'Geist', system-ui, sans-serif;
+      --font-serif:    'Instrument Serif', serif;
+      --font-mono:     'Geist Mono', ui-monospace, monospace;
+    }
+    body {
+      font-family: var(--font-sans);
+      background: var(--color-paper);
+      color: var(--color-ink);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 3rem 2rem;
+    }
+    .frame { max-width: 1200px; width: 100%; }
+    .eyebrow {
+      font-family: var(--font-mono);
+      font-size: 0.66rem;
+      font-weight: 500;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--color-muted);
+      margin-bottom: 0.5rem;
+    }
+    h1 {
+      font-family: var(--font-serif);
+      font-size: clamp(1.5rem, 2.4vw + 0.75rem, 2rem);
+      font-weight: 400;
+      letter-spacing: -0.02em;
+      line-height: 1.15;
+      color: var(--color-ink);
+      margin-bottom: 1.5rem;
+    }
+    svg { width: 100%; min-width: 900px; display: block; }
+  </style>
+</head>
+<body>
+  <div class="frame">
+    <p class="eyebrow">User story map · Diagram Design</p>
+    <h1>Cellar first release</h1>
+
+    <svg viewBox="0 0 1256 540" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="story-map-cellar-title story-map-cellar-desc">
+      <title id="story-map-cellar-title">Cellar first release · User story map</title>
+      <desc id="story-map-cellar-desc">Story map for the stars cellar: five narrative activities from fetching stars to filing on GitHub. MVP is persist and review inbox. Release 2 now labels P1-3/6 facet-and-sort, P1-4 taxonomy editor, P1-5 candidate chips. Later holds P1-7/8 grain and clusters plus Cuvée P3-3 notes that never file.</desc>
+
+      <rect width="100%" height="100%" fill="#f6f3ee"/>
+
+      <rect x="32" y="216" width="1192" height="80" fill="rgba(32,33,31,0.02)"/>
+      <rect x="32" y="376" width="1192" height="80" fill="rgba(32,33,31,0.02)"/>
+      <text x="48" y="260" fill="#686b63" font-size="8" font-family="'Geist Mono', monospace" letter-spacing="0.14em">MVP</text>
+      <text x="48" y="340" fill="#686b63" font-size="8" font-family="'Geist Mono', monospace" letter-spacing="0.14em">RELEASE 2</text>
+      <text x="48" y="420" fill="#686b63" font-size="8" font-family="'Geist Mono', monospace" letter-spacing="0.14em">LATER</text>
+
+      <line x1="116" y1="108" x2="116" y2="456" stroke="rgba(32,33,31,0.10)" stroke-width="0.8" stroke-dasharray="4,4"/>
+      <line x1="340" y1="108" x2="340" y2="456" stroke="rgba(32,33,31,0.10)" stroke-width="0.8" stroke-dasharray="4,4"/>
+      <line x1="564" y1="108" x2="564" y2="456" stroke="rgba(32,33,31,0.10)" stroke-width="0.8" stroke-dasharray="4,4"/>
+      <line x1="788" y1="108" x2="788" y2="456" stroke="rgba(32,33,31,0.10)" stroke-width="0.8" stroke-dasharray="4,4"/>
+      <line x1="1012" y1="108" x2="1012" y2="456" stroke="rgba(32,33,31,0.10)" stroke-width="0.8" stroke-dasharray="4,4"/>
+      <line x1="1236" y1="108" x2="1236" y2="456" stroke="rgba(32,33,31,0.10)" stroke-width="0.8" stroke-dasharray="4,4"/>
+
+      <rect x="128" y="40" width="200" height="64" rx="6" fill="rgba(32,33,31,0.05)" stroke="#686b63" stroke-width="1"/>
+      <text x="228" y="68" fill="#20211f" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Fetch the stars</text>
+      <text x="228" y="88" fill="#686b63" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.14em">ACTIVITY 1</text>
+      <rect x="352" y="40" width="200" height="64" rx="6" fill="rgba(32,33,31,0.05)" stroke="#686b63" stroke-width="1"/>
+      <text x="452" y="68" fill="#20211f" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Review the pile</text>
+      <text x="452" y="88" fill="#686b63" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.14em">ACTIVITY 2</text>
+      <rect x="576" y="40" width="200" height="64" rx="6" fill="rgba(32,33,31,0.05)" stroke="#686b63" stroke-width="1"/>
+      <text x="676" y="68" fill="#20211f" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">File into shelves</text>
+      <text x="676" y="88" fill="#686b63" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.14em">ACTIVITY 3</text>
+      <rect x="800" y="40" width="200" height="64" rx="6" fill="rgba(32,33,31,0.05)" stroke="#686b63" stroke-width="1"/>
+      <text x="900" y="68" fill="#20211f" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Take a copy home</text>
+      <text x="900" y="88" fill="#686b63" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.14em">ACTIVITY 4</text>
+      <rect x="1024" y="40" width="200" height="64" rx="6" fill="rgba(32,33,31,0.05)" stroke="#686b63" stroke-width="1"/>
+      <text x="1124" y="68" fill="#20211f" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">File on GitHub</text>
+      <text x="1124" y="88" fill="#686b63" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.14em">ACTIVITY 5</text>
+
+      <rect x="144" y="120" width="168" height="32" rx="4" fill="#ffffff" stroke="#20211f" stroke-width="0.8"/>
+      <text x="156" y="140" fill="#20211f" font-size="12" font-family="'Geist', sans-serif">Paste a PAT</text>
+      <rect x="368" y="120" width="168" height="32" rx="4" fill="#ffffff" stroke="#20211f" stroke-width="0.8"/>
+      <text x="380" y="140" fill="#20211f" font-size="12" font-family="'Geist', sans-serif">Scan buckets</text>
+      <rect x="592" y="120" width="168" height="32" rx="4" fill="#ffffff" stroke="#20211f" stroke-width="0.8"/>
+      <text x="604" y="140" fill="#20211f" font-size="12" font-family="'Geist', sans-serif">Move a repo</text>
+      <rect x="816" y="120" width="168" height="32" rx="4" fill="#ffffff" stroke="#20211f" stroke-width="0.8"/>
+      <text x="828" y="140" fill="#20211f" font-size="12" font-family="'Geist', sans-serif">Download JSON</text>
+      <rect x="1040" y="120" width="168" height="32" rx="4" fill="#ffffff" stroke="#20211f" stroke-width="0.8"/>
+      <text x="1052" y="140" fill="#20211f" font-size="12" font-family="'Geist', sans-serif">Try Lists push</text>
+
+      <rect x="144" y="232" width="168" height="48" rx="4" fill="rgba(23,107,85,0.05)" stroke="#176b55" stroke-width="1" stroke-dasharray="4,4"/>
+      <text x="156" y="250" fill="#20211f" font-size="12" font-weight="600" font-family="'Geist', sans-serif">Persist snapshot</text>
+      <text x="156" y="266" fill="#686b63" font-size="9" font-family="'Geist Mono', monospace">P0 · never the token</text>
+      <rect x="256" y="256" width="40" height="12" rx="2" fill="transparent" stroke="#176b55" stroke-width="0.8"/>
+      <text x="276" y="265" fill="#176b55" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">RISK</text>
+
+      <rect x="368" y="232" width="168" height="48" rx="4" fill="#ffffff" stroke="#20211f" stroke-width="1"/>
+      <text x="380" y="250" fill="#20211f" font-size="12" font-weight="600" font-family="'Geist', sans-serif">Review inbox</text>
+      <text x="380" y="266" fill="#686b63" font-size="9" font-family="'Geist Mono', monospace">P0 · default landing</text>
+      <rect x="592" y="232" width="168" height="48" rx="4" fill="#ffffff" stroke="#20211f" stroke-width="1"/>
+      <text x="604" y="250" fill="#20211f" font-size="12" font-weight="600" font-family="'Geist', sans-serif">Keyboard filing</text>
+      <text x="604" y="266" fill="#686b63" font-size="9" font-family="'Geist Mono', monospace">P0 · j/k file skip</text>
+      <rect x="816" y="232" width="168" height="48" rx="4" fill="#ffffff" stroke="#20211f" stroke-width="1"/>
+      <text x="828" y="250" fill="#20211f" font-size="12" font-weight="600" font-family="'Geist', sans-serif">Honest empty states</text>
+      <text x="828" y="266" fill="#686b63" font-size="9" font-family="'Geist Mono', monospace">P0 · rate limit</text>
+
+      <line x1="32" y1="296" x2="1224" y2="296" stroke="#176b55" stroke-width="1.5"/>
+      <rect x="1088" y="288" width="104" height="16" rx="2" fill="#f6f3ee"/>
+      <text x="1140" y="299" fill="#176b55" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.10em">RELEASE CUT</text>
+
+      <rect x="144" y="312" width="168" height="48" rx="4" fill="#ffffff" stroke="#20211f" stroke-width="1"/>
+      <text x="156" y="330" fill="#20211f" font-size="12" font-weight="600" font-family="'Geist', sans-serif">Stale bottles</text>
+      <text x="156" y="346" fill="#686b63" font-size="9" font-family="'Geist Mono', monospace">P1-2 · never opened</text>
+      <rect x="368" y="312" width="168" height="48" rx="4" fill="#ffffff" stroke="#20211f" stroke-width="1"/>
+      <text x="380" y="330" fill="#20211f" font-size="12" font-weight="600" font-family="'Geist', sans-serif">Facet + sort</text>
+      <text x="380" y="346" fill="#686b63" font-size="9" font-family="'Geist Mono', monospace">P1-3/6 · not shelves</text>
+      <rect x="592" y="312" width="168" height="48" rx="4" fill="#ffffff" stroke="#20211f" stroke-width="1"/>
+      <text x="604" y="330" fill="#20211f" font-size="12" font-weight="600" font-family="'Geist', sans-serif">Taxonomy editor</text>
+      <text x="604" y="346" fill="#686b63" font-size="9" font-family="'Geist Mono', monospace">P1-4 · rename merge</text>
+      <rect x="816" y="312" width="168" height="48" rx="4" fill="#ffffff" stroke="#20211f" stroke-width="1"/>
+      <text x="828" y="330" fill="#20211f" font-size="12" font-weight="600" font-family="'Geist', sans-serif">Wine-list export</text>
+      <text x="828" y="346" fill="#686b63" font-size="9" font-family="'Geist Mono', monospace">P1-1 · still local</text>
+      <rect x="1040" y="312" width="168" height="48" rx="4" fill="#ffffff" stroke="#20211f" stroke-width="1"/>
+      <text x="1052" y="330" fill="#20211f" font-size="12" font-weight="600" font-family="'Geist', sans-serif">Candidate chips</text>
+      <text x="1052" y="346" fill="#686b63" font-size="9" font-family="'Geist Mono', monospace">P1-5 · accept / other</text>
+
+      <rect x="144" y="392" width="168" height="48" rx="4" fill="#ffffff" stroke="#20211f" stroke-width="1"/>
+      <text x="156" y="410" fill="#20211f" font-size="12" font-weight="600" font-family="'Geist', sans-serif">Grain + clusters</text>
+      <text x="156" y="426" fill="#686b63" font-size="9" font-family="'Geist Mono', monospace">P1-7/8 · flag off</text>
+      <rect x="1040" y="392" width="168" height="48" rx="4" fill="#ffffff" stroke="#20211f" stroke-width="1"/>
+      <text x="1052" y="410" fill="#20211f" font-size="12" font-weight="600" font-family="'Geist', sans-serif">Browser extension</text>
+      <text x="1052" y="426" fill="#686b63" font-size="9" font-family="'Geist Mono', monospace">P2 · file from github.com</text>
+      <rect x="592" y="392" width="168" height="48" rx="4" fill="#ffffff" stroke="#20211f" stroke-width="1"/>
+      <text x="604" y="410" fill="#20211f" font-size="12" font-weight="600" font-family="'Geist', sans-serif">Cuvée overlay</text>
+      <text x="604" y="426" fill="#686b63" font-size="9" font-family="'Geist Mono', monospace">P3 · optional module</text>
+      <rect x="368" y="392" width="168" height="48" rx="4" fill="#ffffff" stroke="#20211f" stroke-width="1"/>
+      <text x="380" y="410" fill="#20211f" font-size="12" font-weight="600" font-family="'Geist', sans-serif">Weekly tasting</text>
+      <text x="380" y="426" fill="#686b63" font-size="9" font-family="'Geist Mono', monospace">P3 · seven bottles</text>
+      <rect x="816" y="392" width="168" height="48" rx="4" fill="#ffffff" stroke="#20211f" stroke-width="1"/>
+      <text x="828" y="410" fill="#20211f" font-size="12" font-weight="600" font-family="'Geist', sans-serif">Sommelier notes</text>
+      <text x="828" y="426" fill="#686b63" font-size="9" font-family="'Geist Mono', monospace">P3-3 · guess, never file</text>
+
+      <line x1="32" y1="480" x2="1224" y2="480" stroke="rgba(32,33,31,0.10)" stroke-width="0.8"/>
+      <text x="32" y="496" fill="#686b63" font-size="8" font-family="'Geist Mono', monospace" letter-spacing="0.18em">LEGEND</text>
+      <rect x="32" y="508" width="16" height="8" fill="#ffffff" stroke="#20211f" stroke-width="1"/>
+      <text x="56" y="516" fill="#686b63" font-size="8.5" font-family="'Geist', sans-serif">Story card</text>
+      <rect x="232" y="508" width="16" height="8" fill="rgba(23,107,85,0.05)" stroke="#176b55" stroke-width="1" stroke-dasharray="4,4"/>
+      <text x="256" y="516" fill="#686b63" font-size="8.5" font-family="'Geist', sans-serif">Highest risk</text>
+      <line x1="432" y1="512" x2="464" y2="512" stroke="#176b55" stroke-width="1.5"/>
+      <text x="480" y="516" fill="#686b63" font-size="8.5" font-family="'Geist', sans-serif">Release cut</text>
+    </svg>
+  </div>
+</body>
+</html>
