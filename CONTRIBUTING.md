@@ -1,6 +1,6 @@
 # Contributing
 
-Thanks for contributing to GitHub Stars Organizer.
+Small fixes and focused changes are welcome.
 
 ## Workflow
 

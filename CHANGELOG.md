@@ -6,6 +6,7 @@
 
 - Compact-granular taxonomy concept: spec, layer-stack diagram, and tickets P1-4…P1-8 plus P3-3. No filing-code change in this sitting.
 - Desk hygiene: skip link to inbox, polite live status, `:focus-visible`, `100dvh`, `tabular-nums`, `content-visibility` on rows, and a confirm before **Clear this cellar**.
+- Public README: one screen for run, token, and what the desk does. File map and launch notes stay in onboarding.
 
 ### Notes
 
