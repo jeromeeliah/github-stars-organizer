@@ -34,7 +34,7 @@ docs/                         # notes, not runtime
 
 Keep categorization and export **pure** so Node can test them. Keep GitHub I/O in `src/githubApi.js`.
 
-Version `0.1.1`, `"private": true`. `"private"` blocks `npm publish`. The GitHub repository is public. Quality gate is local `npm test` plus a manual browser pass — there is no CI workflow.
+Version `0.1.2`, `"private": true`. `"private"` blocks `npm publish`. The GitHub repository is public. Quality gate is local `npm test` plus a manual browser pass — there is no CI workflow.
 
 ## Data Models
 
