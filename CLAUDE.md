@@ -1,6 +1,6 @@
 # GitHub Stars Organizer
 
-Privacy-first, browser-only stars review desk. No backend, no runtime npm deps, no accounts. Human map: `ONBOARDING.md`. Visitor landing: `README.md`.
+Privacy-first, browser-only stars review desk. No backend, no runtime npm deps, no accounts. Human map: `docs/onboarding.md`. Visitor landing: `README.md`.
 
 ## Commands
 
@@ -9,11 +9,11 @@ npm test                 # Node built-in test runner (node --test)
 npm run start            # python3 -m http.server 4173
 ```
 
-Open `http://localhost:4173/github_stars_organizer.html`. There is no `npm install` for the product (`package.json` has no `dependencies`).
+Open `http://localhost:4173/`. There is no `npm install` for the product (`package.json` has no `dependencies`).
 
 ## Architecture
 
-- `github_stars_organizer.html` — shell, CSS, token field
+- `index.html` — shell, CSS, token field
 - `src/app.js` — DOM, in-memory session, event handlers (not unit-tested)
 - `src/organizer.js` — pure rules, scoring, exports (tested)
 - `src/cellarStore.js` — persist, sticky filings, inbox helpers (tested)

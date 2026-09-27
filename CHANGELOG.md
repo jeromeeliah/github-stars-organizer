@@ -2,7 +2,9 @@
 
 ## Unreleased
 
-Nothing yet.
+### Changed
+
+- README shows the empty desk. Entry file is `index.html`. Onboarding lives under `docs/`.
 
 ## [0.1.2] — 2026-09-27
 
