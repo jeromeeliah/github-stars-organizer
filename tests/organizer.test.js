@@ -144,9 +144,14 @@ test("exports readable Markdown grouped by category", () => {
     repo({ id: 9, full_name: "owner/security-kit", name: "security-kit", topics: ["security"] }),
   ]);
 
+  assert.ok(grouped.results[0].explanations.length > 0);
+
   const markdown = exportMarkdown(grouped);
 
   assert.match(markdown, /# GitHub Stars Organized/);
   assert.match(markdown, /Security & Privacy/);
   assert.match(markdown, /owner\/security-kit/);
+  assert.match(markdown, /1 repository\./);
+  assert.match(markdown, /42 stars · JavaScript/);
+  assert.doesNotMatch(markdown, /Matched:/);
 });

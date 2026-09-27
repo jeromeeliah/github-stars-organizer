@@ -28,7 +28,7 @@ If you need private starred repositories, grant the token access to those reposi
 - Opens on the unfiled inbox. Filing a row shrinks the queue.
 - Sorts with local rules you can read and extend.
 - Keeps a manual move when the rules run again.
-- Exports JSON and Markdown. Import `github-stars-organized.json` to reload.
+- Exports a Markdown list and a JSON reload file. Import `github-stars-organized.json` to load it again.
 - Can try an experimental subset push to one GitHub List. Export still works when that call fails.
 
 ## Project

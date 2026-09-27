@@ -27,13 +27,12 @@ src/organizer.js              # rules, scoring, exports (pure, tested)
 src/cellarStore.js            # IndexedDB cellar, sticky filings, inbox (tested)
 src/githubApi.js              # only GitHub REST boundary
 tests/                        # Node built-in test runner
-docs/                         # product/architecture notes, not runtime
-scripts/github-stars-bridge.mjs  # maintainer Playwright helper (not the app)
+docs/                         # notes, not runtime
 ```
 
 **Start here:** `README.md` → `github_stars_organizer.html` → `src/organizer.js` → `src/cellarStore.js` → `src/githubApi.js` → `src/app.js`.
 
-Intended split (from `docs/implementation-plan.md`): keep categorization/export **pure** so Node can test it; keep the HTML as shell; keep GitHub I/O in one module.
+Keep categorization and export **pure** so Node can test them. Keep GitHub I/O in `src/githubApi.js`.
 
 Version `0.1.1`, `"private": true`. `"private"` blocks `npm publish`. The GitHub repository is public. Quality gate is local `npm test` plus a manual browser pass — there is no CI workflow.
 
@@ -69,8 +68,6 @@ Outbound **GitHub REST v3** from `src/githubApi.js` (`https://api.github.com`, `
 
 Treat Lists as optional. If those calls fail, the UI should still export JSON/Markdown/taxonomy.
 
-`scripts/github-stars-bridge.mjs` is Playwright against `https://github.com/stars`, not an HTTP API.
-
 ## Authentication
 
 No Auth.js, Clerk, OAuth, middleware, or protected routes.
@@ -83,7 +80,7 @@ Minimum documented scope for fetch: fine-grained **Starring: Read**. Lists write
 
 Nothing in-repo for Docker, Vercel, Netlify, Fly, Terraform, or GitHub Actions. Ship the repo root as static files (`github_stars_organizer.html` + `src/*.js`) on any static host. No build step, no env vars.
 
-`.github/` has issue/PR templates only. Launch checklist lives in `docs/open-source-github-launch.md`; it is not automated.
+`.github/` has issue/PR templates only. There is no deploy workflow.
 
 ## Key Files to Know
 
@@ -93,16 +90,14 @@ Nothing in-repo for Docker, Vercel, Netlify, Fly, Terraform, or GitHub Actions. 
 - `src/app.js` — UI state machine; do not bury categorization rules here
 - `github_stars_organizer.html` — entry URL and token/privacy copy
 - `tests/organizer.test.js` / `tests/githubApi.test.js` / `tests/cellarStore.test.js` — required before behavior changes
-- `docs/direct-push-options.md` — why Lists are experimental and what fallbacks exist
-- `docs/implementation-plan.md` — architecture increments and category model
-- `README.md` — human source of truth for run/token/positioning
-- `.cursor/skills/codebase-onboarding/SKILL.md` — repo-local skill that regenerates this file
+- `docs/direct-push-options.md` — why Lists are experimental
+- `README.md` — how to run it and where the token goes
 
 ## Gotchas
 
 1. **HTTP server required** — ES modules need `npm run start` (or any static server), not `file://`.
-2. **Zero product dependencies** — do not add a bundler or backend without an explicit product decision. The Playwright bridge is unlisted in `package.json` and needs Playwright installed separately; it is maintainer-only.
+2. **Zero product dependencies** — do not add a bundler or backend without an explicit product decision.
 3. **Lists will break** — undocumented `/user/lists` paths. Exports are the reliable path.
-4. **Token is tab-scoped** — refresh loses it; filings stay in the cellar. That is intended.
-5. **`brain/`** — local agent notes, not the app. Prefer README + this file for onboarding.
-6. **No CI** — `npm test` is the gate. PR template also expects a manual browser pass.
+4. **Token is tab-scoped** — refresh loses it; filings stay in this browser. That is intended.
+5. **Local notes stay local** — `brain/`, `docs/agents/`, and `scripts/` are gitignored.
+6. **No CI** — `npm test` is the gate. The PR template also expects a manual browser pass.
