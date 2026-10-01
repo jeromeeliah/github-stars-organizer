@@ -45,6 +45,7 @@ const state = {
 };
 
 const els = {
+  connectForm: document.querySelector("#connectForm"),
   token: document.querySelector("#token"),
   analyze: document.querySelector("#analyze"),
   status: document.querySelector("#status"),
@@ -75,7 +76,10 @@ const els = {
   pushSelected: document.querySelector("#pushSelected"),
 };
 
-els.analyze.addEventListener("click", analyzeStars);
+els.connectForm.addEventListener("submit", (event) => {
+  event.preventDefault();
+  analyzeStars();
+});
 els.addCategory.addEventListener("click", addManualCategory);
 els.categoryFilter.addEventListener("change", () => {
   state.selectedCategory = els.categoryFilter.value;
