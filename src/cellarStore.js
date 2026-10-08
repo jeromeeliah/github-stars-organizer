@@ -306,6 +306,7 @@ function serializeStarSnapshot(repo) {
       ? { spdx_id: repo.license.spdx_id }
       : (repo.license ? { spdx_id: String(repo.license) } : null),
     owner: { login: repo.owner?.login || String(repo.full_name || "").split("/")[0] || "" },
+    node_id: repo.node_id || "",
   };
 }
 
@@ -328,6 +329,7 @@ export function hydrateSerializedRepo(item) {
     pushed_at: item.pushedAt,
     license: item.license ? { spdx_id: item.license } : null,
     owner: { login: item.owner || "" },
+    node_id: item.node_id || "",
   });
 }
 

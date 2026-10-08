@@ -1,6 +1,6 @@
 # Codebase Onboarding
 
-Privacy-first **browser app** for reviewing starred GitHub repos. No backend, no runtime npm deps, no server database. Same-origin IndexedDB may cache the cellar; the GitHub token never goes there. Categorization is local tokenized rules; GitHub Lists sync is experimental.
+Privacy-first **browser app** for reviewing starred GitHub repos. No backend, no runtime npm deps, no server database. Same-origin IndexedDB may cache the cellar; the GitHub token never goes there. Categorization is local tokenized rules; GitHub Lists write is optional GraphQL (`user` scope).
 
 ## Quick Start
 
@@ -57,16 +57,16 @@ Default buckets include AI & ML, AI Agents, Developer Tools, Web, Data, Infra, S
 
 **No app server and no local routes.** `npm run start` only serves static files.
 
-Outbound **GitHub REST v3** from `src/githubApi.js` (`https://api.github.com`, `X-GitHub-Api-Version: 2022-11-28`, `Authorization: Bearer <token>`):
+Outbound GitHub calls from `src/githubApi.js` (`https://api.github.com`, `X-GitHub-Api-Version: 2022-11-28`, `Authorization: Bearer <token>`):
 
 | Method | Path | Function | Purpose |
 | --- | --- | --- | --- |
 | GET | `/user/starred?per_page=100` | `fetchAllStars` | Paginate stars via `Link: rel="next"` |
-| GET | `/user/lists` | `fetchExistingLists` | Probe experimental Lists API |
-| POST | `/user/lists` | `createList` | Create a list |
-| POST | `/user/lists/{id}/items` | `addRepoToList` | Add `{ repository_id }` |
+| POST | `/graphql` `viewer.lists` | `fetchExistingLists` | Read GitHub Lists (GraphQL) |
+| POST | `/graphql` `createUserList` | `createList` | Create a **private** list |
+| POST | `/graphql` `updateUserListsForItem` | `addRepoToList` | Merge a repo onto a list (does not strip other lists) |
 
-Treat Lists as optional. If those calls fail, the UI should still export JSON/Markdown/taxonomy.
+REST `/user/lists` 404s. Treat Lists write as optional. If GraphQL writes fail (usually missing `user` scope), the UI should still export JSON/Markdown/taxonomy.
 
 ## Authentication
 
@@ -74,7 +74,7 @@ No Auth.js, Clerk, OAuth, middleware, or protected routes.
 
 The user pastes a PAT into a password field (`autocomplete="off"`). `isLikelyGitHubToken` in `src/organizer.js` accepts `github_pat_` and classic prefixes `ghp_`, `gho_`, `ghu_`, `ghs_`, `ghr_`. The token is copied to `state.token` and **must not be persisted**. It is sent only to GitHub, only on user-initiated requests (`SECURITY.md`).
 
-Minimum documented scope for fetch: fine-grained **Starring: Read**. Lists write has **no stable public permission recipe** — account-dependent, experimental.
+Minimum documented scope for fetch: fine-grained **Starring: Read**. Lists write: classic PAT with the **`user`** scope. Fine-grained tokens cannot currently create Lists. New lists are private.
 
 ## Deployment
 
@@ -86,7 +86,7 @@ Nothing in-repo for Docker, Vercel, Netlify, Fly, Terraform, or GitHub Actions. 
 
 - `src/organizer.js` — product brain: taxonomy, scoring, confidence, portable JSON/Markdown
 - `src/cellarStore.js` — IndexedDB cache, JSON import, sticky filings, inbox and keyboard helpers; never the token
-- `src/githubApi.js` — stars pagination + experimental Lists; keep all GitHub HTTP here
+- `src/githubApi.js` — stars pagination + GraphQL Lists; keep all GitHub HTTP here
 - `src/app.js` — UI state machine; do not bury categorization rules here
 - `index.html` — entry URL and token/privacy copy
 - `tests/organizer.test.js` / `tests/githubApi.test.js` / `tests/cellarStore.test.js` — required before behavior changes
@@ -97,7 +97,7 @@ Nothing in-repo for Docker, Vercel, Netlify, Fly, Terraform, or GitHub Actions. 
 
 1. **HTTP server required** — ES modules need `npm run start` (or any static server), not `file://`.
 2. **Zero product dependencies** — do not add a bundler or backend without an explicit product decision.
-3. **Lists will break** — undocumented `/user/lists` paths. Exports are the reliable path.
+3. **Lists write needs `user`** — GraphQL `createUserList` / `updateUserListsForItem`. REST `/user/lists` 404s. Exports still work without that scope.
 4. **Token is tab-scoped** — refresh loses it; filings stay in this browser. That is intended.
 5. **Local notes stay local** — `brain/`, `docs/agents/`, and `scripts/` are gitignored.
 6. **No CI** — `npm test` is the gate. The PR template also expects a manual browser pass.

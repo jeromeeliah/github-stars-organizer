@@ -525,7 +525,7 @@
             <label for="token">GitHub token</label>
             <input id="token" type="password" autocomplete="off" spellcheck="false" placeholder="github_pat_… or ghp_…">
           </div>
-          <p class="hint">Runs in this browser. The token is not stored and is only sent to GitHub API requests. Generate a fine-grained token at <a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noopener noreferrer">github.com/settings/personal-access-tokens/new</a>. For reading stars, choose your account as the resource owner and enable <strong>Starring: Read</strong>. If you want private starred repositories included, allow repository access to the repositories you need.</p>
+          <p class="hint">Runs in this browser. The token is not stored and is only sent to GitHub API requests. To fetch stars, a fine-grained token with <strong>Starring: Read</strong> is enough: <a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noopener noreferrer">fine-grained tokens</a>. To push GitHub Lists, use a <a href="https://github.com/settings/tokens/new?scopes=user&amp;description=github-stars-organizer-lists" target="_blank" rel="noopener noreferrer">classic PAT with the <strong>user</strong> scope</a>. Lists are created private. If you star private repositories, the classic token also needs <strong>repo</strong>.</p>
           <div class="actions">
             <button id="analyze" type="submit">Analyze stars</button>
           </div>
@@ -534,7 +534,7 @@
 
       <section class="panel">
         <h2>How to use</h2>
-        <p class="hint">1. Fetch stars or import <strong>github-stars-organized.json</strong>. 2. The inbox is the default (unfiled rows). 3. File a row to shrink the queue. 4. Export JSON to keep a copy. This browser may cache filings, never the token. 5. Subset push to GitHub Lists is experimental.</p>
+        <p class="hint">1. Fetch stars or import <strong>github-stars-organized.json</strong>. 2. The inbox is the default (unfiled rows). 3. File a row to shrink the queue. 4. Export JSON to keep a copy. This browser may cache filings, never the token. 5. Optional: push a subset to GitHub Lists via GraphQL (classic PAT, <strong>user</strong> scope). New lists are private.</p>
       </section>
 
       <section class="panel">
@@ -573,7 +573,7 @@
 
       <section class="panel">
         <h2>GitHub Lists</h2>
-        <p id="listsNote" class="hint">Lists sync is experimental and undocumented. Prefer subset push. Existing lists are reused by name.</p>
+        <p id="listsNote" class="hint">GitHub Lists use GraphQL (<code>createUserList</code>, <code>updateUserListsForItem</code>). REST <code>/user/lists</code> 404s. Prefer subset push. Existing lists are reused by name. New lists are private. Writes need a classic PAT with the <strong>user</strong> scope.</p>
         <button id="syncLists" class="secondary" disabled>Last-resort: push all non-empty categories</button>
       </section>
     </aside>

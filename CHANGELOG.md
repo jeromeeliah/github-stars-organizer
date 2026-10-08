@@ -5,9 +5,11 @@
 ### Added
 
 - Keyboard filing on the inbox: `j`/`k` move, `f` files the current suggestion, `s` skips (reviewed, same shelf), `r` files Read Later, `u` undoes the last filing in this tab. Keys stay quiet while typing.
+- GitHub Lists push uses documented GraphQL (`viewer.lists`, `createUserList`, `updateUserListsForItem`). New lists are private. Membership updates merge; they do not strip other lists. REST `/user/lists` is a 404.
 
 ### Changed
 
+- Lists write needs a classic PAT with the `user` scope. Fine-grained **Starring: Read** still fetches stars. Exports still work when Lists write is denied.
 - README shows the empty desk. Entry file is `index.html`. Onboarding lives under `docs/`.
 
 ## [0.1.2] — 2026-09-27

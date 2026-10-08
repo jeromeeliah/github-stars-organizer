@@ -289,12 +289,12 @@ async function pushSelectedToGitHubList() {
 
   const selectedResults = state.grouped.results.filter((result) => state.selectedRepoIds.has(String(result.repo.id)));
   setBusy(true);
-  setStatus(`Pushing ${selectedResults.length} selected repositories to GitHub List "${listName}". Experimental endpoint.`, "info");
+  setStatus(`Pushing ${selectedResults.length} selected repositories to GitHub List "${listName}" (GraphQL, private by default).`, "info");
 
   try {
     const list = await ensureList(listName, `Selected subset pushed from GitHub Stars Organizer (${selectedResults.length} repositories)`);
     for (const result of selectedResults) {
-      await addRepoToList(state.token, list.id, result.repo.id);
+      await addRepoToList(state.token, list.id, result.repo, { lists: state.existingLists });
     }
     setStatus(`GitHub List "${list.name}" now includes ${selectedResults.length} selected repositories.`, "success");
   } catch (error) {
@@ -332,11 +332,11 @@ async function checkListsSupport(token) {
   try {
     state.existingLists = await fetchExistingLists(token);
     state.listsAvailable = true;
-    els.listsNote.textContent = `Experimental Lists endpoint responded. Existing GitHub Lists: ${state.existingLists.length}. Prefer subset push; full-category push is last-resort.`;
+    els.listsNote.textContent = `GraphQL Lists available. Existing lists: ${state.existingLists.length}. New lists are created private. Writes need a classic PAT with the user scope. Prefer subset push.`;
   } catch (error) {
     state.existingLists = [];
     state.listsAvailable = false;
-    els.listsNote.textContent = "GitHub does not document a stable public Lists API. If direct push is unavailable, use exports. Lists stay experimental.";
+    els.listsNote.textContent = `${describeGitHubError(error)} Fetch and exports still work without Lists write.`;
   }
 }
 
@@ -354,7 +354,7 @@ async function syncGitHubLists() {
 
   const categories = state.grouped.categories.filter((category) => category.repositories.length > 0 && !category.isDefault);
   setBusy(true);
-  setStatus(`Last-resort: pushing ${categories.length} non-empty categories to experimental GitHub Lists. Prefer subset push.`, "info");
+  setStatus(`Last-resort: pushing ${categories.length} non-empty categories to GitHub Lists via GraphQL. Prefer subset push.`, "info");
 
   let created = 0;
   let reused = 0;
@@ -368,7 +368,7 @@ async function syncGitHubLists() {
       else created += 1;
 
       for (const result of category.repositories) {
-        await addRepoToList(state.token, list.id, result.repo.id);
+        await addRepoToList(state.token, list.id, result.repo, { lists: state.existingLists });
       }
 
       setStatus(`Category push ${created + reused}/${categories.length}: ${category.name}${already ? " (reused list)" : ""}`, "info");

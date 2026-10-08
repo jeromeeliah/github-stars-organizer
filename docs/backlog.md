@@ -2,7 +2,7 @@
 
 Open work lives in [GitHub Issues](https://github.com/jeromeeliah/github-stars-organizer/issues). This file is the short queue.
 
-Shipped in `0.1.x`: persist, inbox, sticky filings, 401/403/429 copy, desk hygiene, Markdown list without rule-match lines, keyboard filing.
+Shipped in `0.1.x`: persist, inbox, sticky filings, 401/403/429 copy, desk hygiene, Markdown list without rule-match lines, keyboard filing, GraphQL Lists push.
 
 ## Next
 
@@ -21,7 +21,7 @@ Shipped in `0.1.x`: persist, inbox, sticky filings, 401/403/429 copy, desk hygie
 | Id | Note |
 | --- | --- |
 | P2-1 | Browser extension to file a repo from `github.com` |
-| P2-2 | Lists via the GitHub UI if REST write stays dead |
+| P2-2 | Browser UI for GitHub Lists if GraphQL `user` scope is unavailable |
 | P2-3 | `npm test` in CI, GitHub Pages of the empty app |
 | P3-3 | Optional notes from a key the user brings. Never silent file. Never the GitHub token |
 

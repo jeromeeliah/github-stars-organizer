@@ -2,9 +2,12 @@ import test from "node:test";
 import assert from "node:assert/strict";
 
 import {
+  addRepoToList,
   buildGitHubHeaders,
+  createList,
   describeGitHubError,
   fetchAllStars,
+  fetchExistingLists,
   findListByName,
   getNextPageUrl,
   getRateLimit,
@@ -105,4 +108,139 @@ test("reuses an existing GitHub List by name", () => {
   const existing = { id: 9, name: "Read Later" };
   assert.equal(findListByName([existing], "read later"), existing);
   assert.equal(findListByName([existing], "New Shelf"), null);
+});
+
+test("describes GraphQL list writes that lack the user scope", () => {
+  assert.match(
+    describeGitHubError({ graphqlType: "INSUFFICIENT_SCOPES", message: "Your token has not been granted the required scopes" }),
+    /user scope/i,
+  );
+});
+
+function graphqlFetcher(handler) {
+  return async (url, init = {}) => {
+    assert.equal(url, "https://api.github.com/graphql");
+    assert.equal(init.method, "POST");
+    const body = JSON.parse(init.body);
+    const payload = await handler(body);
+    return {
+      ok: true,
+      status: 200,
+      headers: new Map([["x-ratelimit-remaining", "4990"]]),
+      json: async () => payload,
+    };
+  };
+}
+
+test("lists GitHub user lists over GraphQL, including extra item pages", async () => {
+  const calls = [];
+  const fetcher = graphqlFetcher(async (body) => {
+    calls.push(body.query.includes("UserListItems") ? "items" : "viewer");
+    if (body.query.includes("UserListItems")) {
+      return {
+        data: {
+          node: {
+            items: {
+              pageInfo: { hasNextPage: false, endCursor: null },
+              nodes: [{ id: "R_2", databaseId: 2, nameWithOwner: "owner/two" }],
+            },
+          },
+        },
+      };
+    }
+    return {
+      data: {
+        viewer: {
+          lists: {
+            pageInfo: { hasNextPage: false, endCursor: null },
+            nodes: [{
+              id: "UL_1",
+              name: "AI & ML",
+              description: "Models",
+              isPrivate: true,
+              items: {
+                pageInfo: { hasNextPage: true, endCursor: "c1" },
+                nodes: [{ id: "R_1", databaseId: 1, nameWithOwner: "owner/one" }],
+              },
+            }],
+          },
+        },
+      },
+    };
+  });
+
+  const lists = await fetchExistingLists("ghp_abcdefghijklmnopqrstuvwxyz1234567890", { fetcher });
+  assert.equal(calls.join(","), "viewer,items");
+  assert.equal(lists[0].id, "UL_1");
+  assert.deepEqual(lists[0].itemIds, ["R_1", "R_2"]);
+});
+
+test("creates a private GitHub List over GraphQL", async () => {
+  const fetcher = graphqlFetcher(async (body) => {
+    assert.match(body.query, /createUserList/);
+    assert.equal(body.variables.isPrivate, true);
+    assert.equal(body.variables.name, "AI & ML");
+    return { data: { createUserList: { list: { id: "UL_new", name: "AI & ML", description: "Models", isPrivate: true } } } };
+  });
+
+  const list = await createList("ghp_abcdefghijklmnopqrstuvwxyz1234567890", { name: "AI & ML", description: "Models" }, { fetcher });
+  assert.equal(list.id, "UL_new");
+  assert.equal(list.isPrivate, true);
+  assert.deepEqual(list.itemIds, []);
+});
+
+test("adds a repository to a list without dropping its other memberships", async () => {
+  const lists = [
+    { id: "UL_keep", name: "Keep", itemIds: ["R_repo"] },
+    { id: "UL_ai", name: "AI & ML", itemIds: [] },
+  ];
+  let sent;
+  const fetcher = graphqlFetcher(async (body) => {
+    sent = body.variables;
+    return { data: { updateUserListsForItem: { lists: [{ id: "UL_keep" }, { id: "UL_ai" }] } } };
+  });
+
+  const result = await addRepoToList(
+    "ghp_abcdefghijklmnopqrstuvwxyz1234567890",
+    "UL_ai",
+    { node_id: "R_repo", full_name: "owner/repo", name: "repo", owner: { login: "owner" } },
+    { fetcher, lists },
+  );
+
+  assert.deepEqual(sent.listIds.sort(), ["UL_ai", "UL_keep"]);
+  assert.equal(result.already, undefined);
+  assert.ok(lists[1].itemIds.includes("R_repo"));
+});
+
+test("skips a GraphQL membership write when the repo is already on the list", async () => {
+  let called = 0;
+  const fetcher = graphqlFetcher(async () => {
+    called += 1;
+    return { data: {} };
+  });
+  const lists = [{ id: "UL_ai", name: "AI & ML", itemIds: ["R_repo"] }];
+  const result = await addRepoToList(
+    "ghp_abcdefghijklmnopqrstuvwxyz1234567890",
+    "UL_ai",
+    "R_repo",
+    { fetcher, lists },
+  );
+  assert.equal(result.already, true);
+  assert.equal(called, 0);
+});
+
+test("surfaces GraphQL insufficient scope errors without dumping the token", async () => {
+  const fetcher = graphqlFetcher(async () => ({
+    errors: [{ type: "INSUFFICIENT_SCOPES", message: "Your token has not been granted the required scopes to execute this query." }],
+  }));
+
+  await assert.rejects(
+    () => fetchExistingLists("ghp_abcdefghijklmnopqrstuvwxyz1234567890", { fetcher }),
+    (error) => {
+      assert.equal(error.graphqlType, "INSUFFICIENT_SCOPES");
+      assert.equal(error.status, 403);
+      assert.equal(error.message.includes("ghp_"), false);
+      return true;
+    },
+  );
 });

@@ -309,6 +309,7 @@ export function serializeRepo(repo, categoryId) {
     pushedAt: repo.pushed_at || "",
     license: repo.license?.spdx_id || "",
     category: categoryId,
+    node_id: repo.node_id || "",
   };
 }
 

@@ -2,106 +2,61 @@
 
 ## Purpose
 
-This document explains how GitHub Stars Organizer can move categorized repositories into GitHub Lists, what is technically possible today, and which path the project should recommend for an open-source release.
+How GitHub Stars Organizer moves categorized repositories onto GitHub Lists, what works today, and what to tell open-source users.
 
 ## Current Recommendation
 
-Use this order of operations:
+1. Fetch stars with REST `GET /user/starred` (fine-grained **Starring: Read** is enough).
+2. File locally. JSON/Markdown exports always work.
+3. Optional Lists write uses **GraphQL**, not REST `/user/lists` (that path 404s).
+4. Probe `viewer { lists }` first. If it works, allow subset push and last-resort category push.
+5. Create lists **private**. Reuse an existing list by name. Merge membership; do not replace a repo's other lists.
+6. If GraphQL writes fail (usually missing `user` scope), fall back to exports.
+7. A browser extension on `github.com` remains the long-term fallback if GraphQL is blocked for an account. Playwright is maintainer-only.
 
-1. Try the undocumented GitHub Lists endpoint from the app.
-2. If it works for the current account, allow direct push from the browser app.
-3. If it does not work, fall back to exports.
-4. For a stronger long-term direct-push story, build a browser extension that automates GitHub's native UI while using the user's logged-in session.
-5. Treat Playwright or Codex Chrome automation as a maintainer-only migration tool, not the primary product flow.
+## Option 1: GraphQL Lists (shipped)
 
-## Option 1: Undocumented GitHub Lists Endpoint
+Implemented in [`src/githubApi.js`](../src/githubApi.js):
 
-The app currently attempts direct push through the endpoints in [`src/githubApi.js`](../src/githubApi.js):
+- `viewer { lists { items } }` — `fetchExistingLists`
+- `createUserList` — `createList` (`isPrivate: true` unless the caller overrides)
+- `updateUserListsForItem` — `addRepoToList` (read-modify-write: keep current list ids, add one)
 
-- `GET /user/lists`
-- `POST /user/lists`
-- `POST /user/lists/{id}/items`
+Official reference: [GraphQL `createUserList`](https://docs.github.com/en/graphql/reference/mutations#createuserlist) and [`updateUserListsForItem`](https://docs.github.com/en/graphql/reference/mutations#updateuserlistsforitem).
 
-### Benefits
+`updateUserListsForItem` **replaces** the repo's full list membership. The desk therefore loads current membership from `viewer.lists` items, then resubmits the merged id set.
 
-- Fastest and cleanest user experience
-- Works entirely inside the browser app
-- Supports category-level push and selected-subset push
+### Token
 
-### Risks
+| Job | Token |
+| --- | --- |
+| Fetch stars | Fine-grained PAT, **Starring: Read** |
+| Read/write Lists | Classic PAT with the **`user`** scope |
+| Private starred repos | Classic **`repo`** as well |
 
-- GitHub does not document these endpoints as a stable public Lists API
-- Permission requirements are not officially documented
-- Behavior can change or disappear without notice
+Fine-grained **Starring: Read** cannot currently create Lists.
 
 ### Product Position
 
-Keep this path enabled, but always label it as experimental and capability-checked.
+This is the default Lists path. Label the `user` scope in the UI. Exports must still work when writes are denied.
 
 ## Option 2: Browser Extension Fallback
 
-Build a GitHub browser extension that runs on `github.com`, reads a selected subset from the organizer, and uses the real GitHub Stars UI to add repositories to lists.
-
-### Benefits
-
-- Uses the user's existing authenticated GitHub session
-- Depends on documented user-facing UI rather than an undocumented REST write contract
-- More practical for open-source users than a Playwright setup
-
-### Risks
-
-- GitHub DOM changes can break the workflow
-- Slower than a real API
-- Requires installation and browser permissions
-
-### Product Position
-
-This is the best long-term fallback if direct push remains strategically important.
+Automate GitHub's native Stars UI from an extension, using the logged-in session. Use if GraphQL `user` is unacceptable for a given account. Not shipped.
 
 ## Option 3: Playwright or Chrome Automation
 
-Use Playwright or Chrome automation to open GitHub, navigate the Stars UI, and click list-management controls on behalf of the user.
-
-### Benefits
-
-- Can work even when the hidden API is unavailable
-- Useful for one-off migrations or maintainer operations
-
-### Risks
-
-- Brittle and session-dependent
-- Hard to package as a reliable end-user workflow
-- More complex support burden for an open-source project
-
-### Product Position
-
-Do not make this the default product path. Keep it as an operator tool or debugging aid.
+Maintainer-only. Not an end-user flow.
 
 ## Official GitHub Documentation Status
 
-As of May 21, 2026:
+As of 8 Oct 2026:
 
-- GitHub documents Lists through the Stars UI and labels them public preview:
-  `https://docs.github.com/get-started/exploring-projects-on-github/saving-repositories-with-stars`
-- GitHub documents reading starred repositories in the REST API and documents fine-grained token support for that read path:
-  `https://docs.github.com/en/rest/activity/starring`
-- GitHub does not document a stable public REST write API for GitHub Lists.
+- Stars UI / Lists preview: `https://docs.github.com/get-started/exploring-projects-on-github/saving-repositories-with-stars`
+- REST starring (read): `https://docs.github.com/en/rest/activity/starring`
+- GraphQL list mutations: `https://docs.github.com/en/graphql/reference/mutations#createuserlist`
+- REST `GET /user/lists` still 404s
 
-## Token Guidance
+## Open-Source Copy
 
-For reading stars, recommend a fine-grained personal access token:
-
-1. Open `https://github.com/settings/personal-access-tokens/new`
-2. Choose the user's account as the resource owner
-3. Enable `Starring: Read` under user permissions
-4. If private starred repositories should be included, allow repository access to the repositories that matter
-
-Because GitHub does not document a stable Lists write API, there is no official permission recipe for direct list creation through the hidden endpoint.
-
-## Open-Source Recommendation
-
-For the public GitHub project, describe direct push like this:
-
-> Direct push is best-effort. The app first checks whether GitHub's hidden Lists endpoint responds for your account. If it does, the app can push categories or selected subsets directly. If it does not, export Markdown or JSON and manage the lists manually through GitHub's native Stars UI.
-
-If Lists write stays dead, the next product path is a browser extension on `github.com`, not Playwright.
+> Fetch needs **Starring: Read**. Optional Lists push uses GraphQL and a classic PAT with the **user** scope. New lists are private. If GitHub denies the write, export JSON or Markdown and file in the Stars UI.

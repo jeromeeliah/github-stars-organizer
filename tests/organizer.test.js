@@ -113,6 +113,7 @@ test("exports a minimized portable JSON schema", () => {
     "language",
     "license",
     "name",
+    "node_id",
     "owner",
     "pushedAt",
     "stars",
