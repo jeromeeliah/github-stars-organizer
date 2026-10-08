@@ -4,10 +4,14 @@
 
 ### Added
 
+- Compact ASCII cellar-rack mark in the README, reused as a tiny `pre` above the app title.
 - Keyboard filing on the inbox: `j`/`k` move, `f` files the current suggestion, `s` skips (reviewed, same shelf), `r` files Read Later, `u` undoes the last filing in this tab. Keys stay quiet while typing.
+- GitHub Lists push uses documented GraphQL (`viewer.lists`, `createUserList`, `updateUserList`, `deleteUserList`, `updateUserListsForItem`). New lists are private. Subset push merges membership. REST `/user/lists` is a 404.
 
 ### Changed
 
+- Lists write needs a classic PAT with the `user` scope. Fine-grained **Starring: Read** still fetches stars. Exports still work when Lists write is denied.
+- **Replace GitHub Lists with these shelves** names lists after the desk, re-files stars onto those shelves only, and deletes leftovers after confirm. At the 32-list cap it rewrites existing lists instead of creating a 33rd. It does not silently alias onto unrelated lists.
 - README shows the empty desk. Entry file is `index.html`. Onboarding lives under `docs/`.
 
 ## [0.1.2] — 2026-09-27

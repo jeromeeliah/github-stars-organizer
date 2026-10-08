@@ -17,7 +17,7 @@ Open `http://localhost:4173/`. There is no `npm install` for the product (`packa
 - `src/app.js` — DOM, in-memory session, event handlers (not unit-tested)
 - `src/organizer.js` — pure rules, scoring, exports (tested)
 - `src/cellarStore.js` — persist, sticky filings, inbox and keyboard helpers (tested)
-- `src/githubApi.js` — only GitHub REST boundary (tested)
+- `src/githubApi.js` — GitHub REST stars + GraphQL Lists (tested)
 - `docs/` — notes, not runtime
 
 Keep categorization/export pure so Node can test it. Keep GitHub I/O in `githubApi.js`. Do not add a bundler, framework, or server to the core app.
@@ -26,7 +26,7 @@ Keep categorization/export pure so Node can test it. Keep GitHub I/O in `githubA
 
 - Never persist the GitHub token (`localStorage`, IndexedDB, cookies, env files, exports).
 - Send the token only to `api.github.com`, only on user-initiated requests.
-- GitHub Lists write (`/user/lists`) is experimental and undocumented. Label it that way. Exports must still work when Lists fail.
+- GitHub Lists write uses GraphQL (`createUserList`, `updateUserList`, `deleteUserList`, `updateUserListsForItem`), not REST `/user/lists`. New lists are private. Writes need a classic PAT with the `user` scope. Last-resort replace rewrites lists to desk names and deletes leftovers after confirm; at the 32-list cap it does not create a 33rd list. Exports must still work when Lists fail.
 - Do not open the app via `file://` — ES module imports fail. Use `npm run start`.
 - Do not treat Playwright or Chrome automation as an end-user flow.
 

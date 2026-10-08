@@ -24,14 +24,14 @@ Security-sensitive areas in this project include:
 
 - Fine-grained token handling in the browser session
 - Exported JSON and Markdown content
-- Direct push to GitHub Lists through undocumented endpoints
+- Direct push to GitHub Lists through GraphQL (`user` scope)
 - Any future browser extension or automation-based GitHub integration
 
 ## Expectations
 
 - The app should not store tokens persistently
 - The app should not send user data anywhere except GitHub API requests initiated by the user
-- Documentation should stay honest about undocumented or experimental GitHub behavior
+- Documentation should stay honest about GraphQL Lists (`user` scope) vs REST starring
 
 ## Disclosure
 
