@@ -80,9 +80,9 @@ Minimum documented scope for fetch: fine-grained **Starring: Read**. Lists write
 
 ## Deployment
 
-Nothing in-repo for Docker, Vercel, Netlify, Fly, Terraform, or GitHub Actions. Ship the repo root as static files (`index.html` + `src/*.js`) on any static host. No build step, no env vars.
+The supported product is **clone and run**. There is no hosted instance, no GitHub Pages site, and no telemetry. Nothing in-repo for Docker, Vercel, Netlify, Fly, Terraform, or GitHub Actions. `.github/` has issue/PR templates only. There is no deploy workflow.
 
-`.github/` has issue/PR templates only. There is no deploy workflow.
+The files are still static (`index.html` + `src/*.js`). A static host would serve them, but that is not shipped. No build step, no env vars. User data still goes only to `api.github.com` on requests the user starts.
 
 ## Key Files to Know
 

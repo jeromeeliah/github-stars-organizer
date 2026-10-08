@@ -13,6 +13,7 @@
 - Lists write needs a classic PAT with the `user` scope. Fine-grained **Starring: Read** still fetches stars. Exports still work when Lists write is denied.
 - **Replace GitHub Lists with these shelves** names lists after the desk, re-files stars onto those shelves only, and deletes leftovers after confirm. At the 32-list cap it rewrites existing lists instead of creating a 33rd. It does not silently alias onto unrelated lists.
 - README shows the empty desk. Entry file is `index.html`. Onboarding lives under `docs/`.
+- The public repo is clone-and-run only. No hosted app, no telemetry. The token still goes only to GitHub on user-started requests.
 
 ## [0.1.2] — 2026-09-27
 
