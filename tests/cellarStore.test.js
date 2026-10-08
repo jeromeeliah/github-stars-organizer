@@ -2,17 +2,23 @@ import test from "node:test";
 import assert from "node:assert/strict";
 
 import {
+  advanceCursor,
   applyStickyFilings,
   assertSafeCellarPayload,
   buildCellarSnapshot,
+  captureFiling,
   clearCellar,
   inboxCount,
   isInboxRow,
   loadCellar,
   parsePortableExport,
+  pushUndo,
   recordAssignment,
+  resolveFilingKey,
+  restoreFiling,
   saveCellar,
   setReviewedFlag,
+  stepCursor,
 } from "../src/cellarStore.js";
 import {
   categorizeRepos,
@@ -131,6 +137,88 @@ test("inbox excludes manual, Read Later, and reviewed rows", () => {
   assert.equal(isInboxRow(sticky.results[0]), false);
   assert.equal(isInboxRow(sticky.results[1]), false);
   assert.equal(inboxCount(sticky.results), 0);
+});
+
+test("filing keys map j/k/f/s/r/u/x and stay quiet while typing or with modifiers", () => {
+  assert.equal(resolveFilingKey({ key: "j" }), "next");
+  assert.equal(resolveFilingKey({ key: "ArrowUp" }), "previous");
+  assert.equal(resolveFilingKey({ key: "f" }), "file");
+  assert.equal(resolveFilingKey({ key: "Enter" }), "file");
+  assert.equal(resolveFilingKey({ key: "s" }), "skip");
+  assert.equal(resolveFilingKey({ key: "r" }), "read-later");
+  assert.equal(resolveFilingKey({ key: "u" }), "undo");
+  assert.equal(resolveFilingKey({ key: "x" }), "select");
+  assert.equal(resolveFilingKey({ key: "q" }), null);
+  assert.equal(resolveFilingKey({ key: "j", typing: true }), null);
+  assert.equal(resolveFilingKey({ key: "f", metaKey: true }), null);
+  assert.equal(resolveFilingKey({ key: "Enter", control: true }), null, "Enter on a button stays a button press");
+  assert.equal(resolveFilingKey({ key: "f", control: true }), "file", "letters still file when a button has focus");
+});
+
+test("cursor steps within visible rows and advances past a filed row", () => {
+  const ids = ["a", "b", "c"];
+  assert.equal(stepCursor(ids, null, 1), "a");
+  assert.equal(stepCursor(ids, null, -1), "c");
+  assert.equal(stepCursor(ids, "a", 1), "b");
+  assert.equal(stepCursor(ids, "c", 1), "c");
+  assert.equal(stepCursor(ids, "a", -1), "a");
+  assert.equal(stepCursor([], "a", 1), null);
+
+  assert.equal(advanceCursor(ids, "b", ["a", "c"]), "c", "filed row vanished: move to the next one");
+  assert.equal(advanceCursor(ids, "c", ["a", "b"]), "b", "last row filed: fall back to the previous one");
+  assert.equal(advanceCursor(ids, "b", ids), "c", "row stays visible: still move on");
+  assert.equal(advanceCursor(ids, "c", ids), "c", "nothing after the last row: stay");
+  assert.equal(advanceCursor(ids, "b", []), null);
+  assert.equal(advanceCursor(ids, "zz", ["a"]), "a");
+});
+
+test("undo entry restores the previous filing exactly", () => {
+  const start = { assignments: { 7: { categoryId: "ai-ml" } }, reviewed: { 7: true } };
+  const filedEntry = captureFiling(start, 7);
+  const unfiledEntry = captureFiling(start, 8);
+
+  const after = {
+    assignments: recordAssignment(recordAssignment(start.assignments, 7, "read-later"), 8, "devops"),
+    reviewed: setReviewedFlag(setReviewedFlag(start.reviewed, 7, true), 8, true),
+  };
+
+  const back8 = restoreFiling(after, unfiledEntry);
+  assert.equal(back8.assignments[8], undefined);
+  assert.equal(back8.reviewed[8], undefined);
+  assert.deepEqual(back8.assignments[7], { categoryId: "read-later" });
+
+  const back7 = restoreFiling(back8, filedEntry);
+  assert.deepEqual(back7.assignments, start.assignments);
+  assert.deepEqual(back7.reviewed, start.reviewed);
+
+  assert.deepEqual(restoreFiling(after, null), after);
+});
+
+test("undo stack caps its length and ignores empty entries", () => {
+  let stack = [];
+  for (let i = 0; i < 60; i += 1) stack = pushUndo(stack, { repoId: String(i), assignment: null, reviewed: false });
+  assert.equal(stack.length, 50);
+  assert.equal(stack[0].repoId, "10");
+  assert.equal(pushUndo(stack, null), stack);
+  assert.equal(pushUndo(undefined, { repoId: "1" }).length, 1);
+});
+
+test("skip is reviewed without a sticky assignment so the shelf stays", () => {
+  const categories = DEFAULT_CATEGORIES.map((category) => ({ ...category }));
+  const grouped = categorizeRepos([
+    repo({ id: 41, full_name: "owner/mystery", name: "mystery", language: null }),
+  ], categories);
+  const shelf = grouped.results[0].primaryCategory.id;
+
+  const sticky = applyStickyFilings(grouped, {
+    assignments: {},
+    reviewed: { 41: true },
+    categories,
+  });
+
+  assert.equal(sticky.results[0].reviewed, true);
+  assert.equal(sticky.results[0].primaryCategory.id, shelf);
+  assert.equal(isInboxRow(sticky.results[0]), false);
 });
 
 test("memory cellar round-trips taxonomy and assignments without a token", async () => {

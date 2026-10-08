@@ -7,16 +7,22 @@ import {
   findListByName,
 } from "./githubApi.js";
 import {
+  advanceCursor,
   applyStickyFilings,
   buildCellarSnapshot,
+  captureFiling,
   clearCellar,
   inboxCount,
   isInboxRow,
   loadCellar,
   parsePortableExport,
+  pushUndo,
   recordAssignment,
+  resolveFilingKey,
+  restoreFiling,
   saveCellar,
   setReviewedFlag,
+  stepCursor,
 } from "./cellarStore.js";
 import {
   categorizeRepos,
@@ -42,6 +48,8 @@ const state = {
   reviewOnly: true,
   listsAvailable: false,
   isBusy: false,
+  cursorRepoId: null,
+  undoStack: [],
 };
 
 const els = {
@@ -119,6 +127,7 @@ els.selectedListName.addEventListener("input", updateActionAvailability);
 els.pushSelected.addEventListener("click", pushSelectedToGitHubList);
 
 els.reviewOnly.checked = true;
+document.addEventListener("keydown", onFilingKey);
 restoreCellar();
 
 async function analyzeStars() {
@@ -202,11 +211,10 @@ function addManualCategory() {
 
 function moveRepo(repoId, categoryId) {
   const target = state.categories.find((category) => category.id === categoryId);
-  const result = state.grouped?.results.find((item) => String(item.repo.id) === String(repoId));
+  const result = resultById(repoId);
   if (!target || !result) return;
 
-  fileResult(result, target);
-  persistAndRender(`Filed ${result.repo.full_name} into ${target.name}.`);
+  commitFiling(result.repo.id, () => fileResult(result, target), `Filed ${result.repo.full_name} into ${target.name}.`);
 }
 
 function bulkMoveSelected() {
@@ -218,14 +226,23 @@ function bulkMoveSelected() {
     return;
   }
 
+  const beforeIds = visibleRepoIds();
   let filed = 0;
+  let lastId = null;
   for (const result of state.grouped.results) {
     if (!state.selectedRepoIds.has(String(result.repo.id))) continue;
+    lastId = String(result.repo.id);
+    rememberFiling(lastId);
     fileResult(result, target);
     filed += 1;
   }
 
-  persistAndRender(`Filed ${filed} selected repositories into ${target.name}.`);
+  refreshGroups();
+  if (lastId) state.cursorRepoId = advanceCursor(beforeIds, lastId, visibleRepoIds());
+  persistCellar();
+  if (state.grouped) renderAll();
+  else renderEmpty();
+  setStatus(`Filed ${filed} selected repositories into ${target.name}.`, "success");
 }
 
 function fileResult(result, target) {
@@ -295,7 +312,6 @@ function recategorize() {
     return;
   }
 
-  state.grouped = applyGrouped();
   persistAndRender();
 }
 
@@ -308,12 +324,8 @@ function applyGrouped() {
   });
 }
 
-function rebuildGroupsFromResults() {
-  state.grouped = applyStickyFilings(state.grouped, {
-    assignments: state.assignments,
-    reviewed: state.reviewed,
-    categories: state.categories,
-  });
+function refreshGroups() {
+  state.grouped = state.repos.length > 0 ? applyGrouped() : null;
 }
 
 async function checkListsSupport(token) {
@@ -394,6 +406,8 @@ function applyImportedCellar(parsed) {
   state.reviewed = parsed.reviewed;
   state.repos = parsed.repos;
   state.selectedRepoIds.clear();
+  state.cursorRepoId = null;
+  state.undoStack = [];
   state.grouped = state.repos.length > 0 ? applyGrouped() : null;
 }
 
@@ -425,13 +439,15 @@ async function clearThisCellar() {
   state.reviewed = {};
   state.grouped = null;
   state.selectedRepoIds.clear();
+  state.cursorRepoId = null;
+  state.undoStack = [];
   state.categories = normalizeCategories(DEFAULT_CATEGORIES);
   renderEmpty();
   setStatus("Cleared saved filings. The GitHub token was never stored.", "success");
 }
 
 function persistAndRender(message) {
-  rebuildGroupsFromResults();
+  refreshGroups();
   persistCellar();
   if (state.grouped) renderAll();
   else renderEmpty();
@@ -560,6 +576,7 @@ function renderFilterControls() {
 
 function renderRepos() {
   if (!state.grouped) {
+    state.cursorRepoId = null;
     els.repoList.replaceChildren(emptyState(emptyListMessage()));
     renderSelectionSummary();
     updateActionAvailability();
@@ -567,6 +584,7 @@ function renderRepos() {
   }
 
   const results = getVisibleResults();
+  syncCursor(results.map((result) => String(result.repo.id)));
   if (results.length === 0) {
     els.repoList.replaceChildren(emptyState(emptyListMessage()));
     renderSelectionSummary();
@@ -575,6 +593,7 @@ function renderRepos() {
   }
 
   els.repoList.replaceChildren(...results.map(repoRow));
+  els.repoList.querySelector(".repo-row.is-cursor")?.scrollIntoView({ block: "nearest" });
   renderSelectionSummary();
   updateActionAvailability();
 }
@@ -613,8 +632,15 @@ function getVisibleResults() {
 }
 
 function repoRow(result) {
+  const repoId = String(result.repo.id);
   const row = document.createElement("article");
   row.className = "repo-row";
+  row.dataset.repoId = repoId;
+  if (state.cursorRepoId === repoId) {
+    row.classList.add("is-cursor");
+    row.setAttribute("aria-current", "true");
+  }
+  row.addEventListener("pointerdown", () => setCursor(repoId, { quiet: true }));
 
   const top = document.createElement("div");
   top.className = "repo-main";
@@ -810,4 +836,155 @@ function downloadText(filename, text, type) {
   link.download = filename;
   link.click();
   URL.revokeObjectURL(url);
+}
+
+function onFilingKey(event) {
+  const action = resolveFilingKey({
+    key: event.key,
+    ctrlKey: event.ctrlKey,
+    metaKey: event.metaKey,
+    altKey: event.altKey,
+    typing: isTypingTarget(event.target),
+    control: Boolean(event.target?.closest?.("button, a, summary, [role='button']")),
+  });
+  if (!action) return;
+  event.preventDefault();
+  handleFilingAction(action);
+}
+
+function handleFilingAction(action) {
+  if (state.isBusy || !state.grouped) return;
+  if (action === "next") moveCursor(1);
+  else if (action === "previous") moveCursor(-1);
+  else if (action === "file") fileCurrentSuggestion();
+  else if (action === "skip") skipCurrent();
+  else if (action === "read-later") readLaterCurrent();
+  else if (action === "undo") undoLastFiling();
+  else if (action === "select") toggleCursorSelection();
+}
+
+function moveCursor(delta) {
+  const ids = visibleRepoIds();
+  if (ids.length === 0) return;
+  setCursor(stepCursor(ids, state.cursorRepoId, delta));
+}
+
+function setCursor(repoId, { quiet = false } = {}) {
+  const id = repoId ? String(repoId) : null;
+  if (state.cursorRepoId === id) return;
+  state.cursorRepoId = id;
+  if (quiet && els.repoList) {
+    for (const node of els.repoList.querySelectorAll(".repo-row")) {
+      const on = node.dataset.repoId === id;
+      node.classList.toggle("is-cursor", on);
+      if (on) node.setAttribute("aria-current", "true");
+      else node.removeAttribute("aria-current");
+    }
+    return;
+  }
+  renderRepos();
+}
+
+function fileCurrentSuggestion() {
+  const result = currentResult();
+  if (!result) return;
+  const target = result.primaryCategory;
+  commitFiling(result.repo.id, () => fileResult(result, target), `Filed ${result.repo.full_name} into ${target.name}.`);
+}
+
+function skipCurrent() {
+  const result = currentResult();
+  if (!result) return;
+  commitFiling(result.repo.id, () => {
+    result.reviewed = true;
+    state.reviewed = setReviewedFlag(state.reviewed, result.repo.id, true);
+  }, `Skipped ${result.repo.full_name}. Still on its shelf.`);
+}
+
+function readLaterCurrent() {
+  const result = currentResult();
+  const target = state.categories.find((category) => category.id === "read-later");
+  if (!result || !target) return;
+  commitFiling(result.repo.id, () => fileResult(result, target), `Filed ${result.repo.full_name} into Read Later.`);
+}
+
+function undoLastFiling() {
+  const entry = state.undoStack.at(-1);
+  if (!entry) {
+    setStatus("Nothing to undo in this tab.", "info");
+    return;
+  }
+
+  state.undoStack = state.undoStack.slice(0, -1);
+  const restored = restoreFiling({ assignments: state.assignments, reviewed: state.reviewed }, entry);
+  state.assignments = restored.assignments;
+  state.reviewed = restored.reviewed;
+  state.cursorRepoId = entry.repoId;
+  const result = resultById(entry.repoId);
+  const name = result?.repo.full_name || `repository ${entry.repoId}`;
+  persistAndRender(`Undid last filing for ${name}.`);
+}
+
+function toggleCursorSelection() {
+  const result = currentResult();
+  if (!result) return;
+  const id = String(result.repo.id);
+  toggleRepoSelection(id, !state.selectedRepoIds.has(id));
+  renderRepos();
+}
+
+function commitFiling(repoId, mutate, message) {
+  const beforeIds = visibleRepoIds();
+  const id = String(repoId);
+  rememberFiling(id);
+  mutate();
+  refreshGroups();
+  state.cursorRepoId = advanceCursor(beforeIds, id, visibleRepoIds());
+  persistCellar();
+  if (state.grouped) renderAll();
+  else renderEmpty();
+  if (message) setStatus(message, "success");
+}
+
+function rememberFiling(repoId) {
+  state.undoStack = pushUndo(state.undoStack, captureFiling({
+    assignments: state.assignments,
+    reviewed: state.reviewed,
+  }, repoId));
+}
+
+function currentResult() {
+  const ids = visibleRepoIds();
+  if (ids.length === 0) return null;
+  syncCursor(ids);
+  return resultById(state.cursorRepoId);
+}
+
+function resultById(repoId) {
+  const id = String(repoId);
+  return state.grouped?.results.find((item) => String(item.repo.id) === id) || null;
+}
+
+function visibleRepoIds() {
+  return getVisibleResults().map((result) => String(result.repo.id));
+}
+
+function syncCursor(visibleIds) {
+  if (!visibleIds.length) {
+    state.cursorRepoId = null;
+    return;
+  }
+  if (!visibleIds.includes(state.cursorRepoId)) {
+    state.cursorRepoId = visibleIds[0];
+  }
+}
+
+function isTypingTarget(target) {
+  if (!target || target === document.body) return false;
+  if (target.isContentEditable) return true;
+  const tag = target.tagName;
+  if (tag === "TEXTAREA" || tag === "SELECT") return true;
+  if (tag !== "INPUT") return false;
+  const type = (target.type || "text").toLowerCase();
+  return !["checkbox", "radio", "button", "submit", "reset", "file"].includes(type);
 }

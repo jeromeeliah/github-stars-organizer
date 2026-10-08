@@ -16,7 +16,7 @@ Open `http://localhost:4173/`. There is no `npm install` for the product (`packa
 - `index.html` — shell, CSS, token field
 - `src/app.js` — DOM, in-memory session, event handlers (not unit-tested)
 - `src/organizer.js` — pure rules, scoring, exports (tested)
-- `src/cellarStore.js` — persist, sticky filings, inbox helpers (tested)
+- `src/cellarStore.js` — persist, sticky filings, inbox and keyboard helpers (tested)
 - `src/githubApi.js` — only GitHub REST boundary (tested)
 - `docs/` — notes, not runtime
 

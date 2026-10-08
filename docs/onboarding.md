@@ -24,7 +24,7 @@ Single package, vanilla HTML + ES modules. No Next.js, Vite, Express, or monorep
 index.html                    # layout, CSS, token field
 src/app.js                    # DOM, session state, event handlers
 src/organizer.js              # rules, scoring, exports (pure, tested)
-src/cellarStore.js            # IndexedDB cellar, sticky filings, inbox (tested)
+src/cellarStore.js            # IndexedDB cellar, sticky filings, inbox, keyboard helpers (tested)
 src/githubApi.js              # only GitHub REST boundary
 tests/                        # Node built-in test runner
 docs/                         # notes, not runtime
@@ -40,7 +40,7 @@ Version `0.1.2`, `"private": true`. `"private"` blocks `npm publish`. The GitHub
 
 **No server database, ORM, or migrations.** Same-origin IndexedDB (`src/cellarStore.js`) may cache taxonomy, assignments, reviewed flags, and the last star snapshot so a refresh keeps filings. The GitHub token is never written. Portable JSON export/import is the durable snapshot.
 
-Session lives in `src/app.js` `state`: token (RAM only), raw repos, taxonomy, grouped results, selection/filters. Reload restores the cellar from IndexedDB or an imported JSON file; the token field stays empty.
+Session lives in `src/app.js` `state`: token (RAM only), raw repos, taxonomy, grouped results, selection/filters, inbox cursor, and a tab-only undo stack. Reload restores the cellar from IndexedDB or an imported JSON file; the token field stays empty. Inbox keys: `j`/`k` move, `f` file suggestion, `s` skip, `r` Read Later, `u` undo.
 
 Logical shapes in `src/organizer.js`:
 
@@ -85,7 +85,7 @@ Nothing in-repo for Docker, Vercel, Netlify, Fly, Terraform, or GitHub Actions. 
 ## Key Files to Know
 
 - `src/organizer.js` — product brain: taxonomy, scoring, confidence, portable JSON/Markdown
-- `src/cellarStore.js` — IndexedDB cache, JSON import, sticky filings, inbox helpers; never the token
+- `src/cellarStore.js` — IndexedDB cache, JSON import, sticky filings, inbox and keyboard helpers; never the token
 - `src/githubApi.js` — stars pagination + experimental Lists; keep all GitHub HTTP here
 - `src/app.js` — UI state machine; do not bury categorization rules here
 - `index.html` — entry URL and token/privacy copy

@@ -13,4 +13,4 @@ Open [http://localhost:4173/](http://localhost:4173/). There is no `npm install`
 
 Create a [fine-grained personal access token](https://github.com/settings/personal-access-tokens/new) for your own account with **Starring: Read**. Paste it into the page. It is sent only to `api.github.com` and is never written to this browser or to an export.
 
-The desk opens on the unfiled inbox. Filing a row shrinks the queue. Manual moves survive a re-score. JSON is the reload file. Markdown is the list you can share.
+The desk opens on the unfiled inbox. Filing a row shrinks the queue. Manual moves survive a re-score. `j`/`k` move, `f` files the suggestion, `s` skips, `r` is Read Later, `u` undoes the last filing in this tab. JSON is the reload file. Markdown is the list you can share.
