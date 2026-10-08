@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Added
+
+- Keyboard filing on the inbox: `j`/`k` move, `f` files the current suggestion, `s` skips (reviewed, same shelf), `r` files Read Later, `u` undoes the last filing in this tab. Keys stay quiet while typing.
+
 ### Changed
 
 - README shows the empty desk. Entry file is `index.html`. Onboarding lives under `docs/`.

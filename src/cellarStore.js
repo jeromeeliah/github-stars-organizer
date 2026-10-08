@@ -164,6 +164,77 @@ export function setReviewedFlag(reviewed, repoId, value = true) {
   return next;
 }
 
+// Keyboard filing (P0-4). Pure: the desk passes in ids and key facts, gets back decisions.
+
+const FILING_KEYS = new Map([
+  ["j", "next"],
+  ["ArrowDown", "next"],
+  ["k", "previous"],
+  ["ArrowUp", "previous"],
+  ["f", "file"],
+  ["Enter", "file"],
+  ["s", "skip"],
+  ["r", "read-later"],
+  ["u", "undo"],
+  ["x", "select"],
+]);
+
+export function resolveFilingKey({ key, ctrlKey = false, metaKey = false, altKey = false, typing = false, control = false } = {}) {
+  if (ctrlKey || metaKey || altKey) return null;
+  if (typing) return null;
+  const action = FILING_KEYS.get(key) || null;
+  if (action === "file" && key === "Enter" && control) return null;
+  return action;
+}
+
+export function stepCursor(visibleIds, currentId, delta) {
+  if (!Array.isArray(visibleIds) || visibleIds.length === 0) return null;
+  const index = visibleIds.indexOf(currentId);
+  if (index === -1) return delta < 0 ? visibleIds[visibleIds.length - 1] : visibleIds[0];
+  const next = Math.min(visibleIds.length - 1, Math.max(0, index + delta));
+  return visibleIds[next];
+}
+
+export function advanceCursor(beforeIds, currentId, afterIds) {
+  if (!Array.isArray(afterIds) || afterIds.length === 0) return null;
+  const stillVisible = new Set(afterIds);
+  const index = Array.isArray(beforeIds) ? beforeIds.indexOf(currentId) : -1;
+  if (index !== -1) {
+    for (let i = index + 1; i < beforeIds.length; i += 1) {
+      if (stillVisible.has(beforeIds[i])) return beforeIds[i];
+    }
+    if (stillVisible.has(currentId)) return currentId;
+    for (let i = index - 1; i >= 0; i -= 1) {
+      if (stillVisible.has(beforeIds[i])) return beforeIds[i];
+    }
+  }
+  return afterIds[afterIds.length - 1];
+}
+
+export function captureFiling({ assignments = {}, reviewed = {} } = {}, repoId) {
+  const key = String(repoId);
+  return {
+    repoId: key,
+    assignment: assignments[key] ? { ...assignments[key] } : null,
+    reviewed: Boolean(reviewed[key]),
+  };
+}
+
+export function restoreFiling({ assignments = {}, reviewed = {} } = {}, entry) {
+  if (!entry?.repoId) return { assignments, reviewed };
+  return {
+    assignments: entry.assignment
+      ? recordAssignment(assignments, entry.repoId, entry.assignment.categoryId)
+      : clearAssignment(assignments, entry.repoId),
+    reviewed: setReviewedFlag(reviewed, entry.repoId, entry.reviewed),
+  };
+}
+
+export function pushUndo(stack = [], entry, limit = 50) {
+  if (!entry) return stack;
+  return [...stack, entry].slice(-limit);
+}
+
 export async function loadCellar(storage = getIndexedDbStorage()) {
   const raw = await storage.get(CELLAR_KEY);
   if (!raw) return null;

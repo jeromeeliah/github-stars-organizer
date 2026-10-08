@@ -325,10 +325,25 @@
       margin: 0;
     }
 
-    .selection-summary {
+    .inbox-meta {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      gap: 8px 16px;
+      margin: 0 0 10px;
+    }
+
+    .selection-summary,
+    .filing-keys {
       color: var(--muted);
       font-size: 0.86rem;
-      margin: 0 0 10px;
+      margin: 0;
+    }
+
+    .filing-keys kbd {
+      font-family: inherit;
+      font-weight: 600;
+      color: var(--ink);
     }
 
     .repo-row {
@@ -337,6 +352,11 @@
       padding: 12px 14px;
       content-visibility: auto;
       contain-intrinsic-size: auto 140px;
+    }
+
+    .repo-row.is-cursor {
+      border-color: var(--accent);
+      box-shadow: inset 3px 0 0 var(--accent);
     }
 
     #inbox {
@@ -582,7 +602,10 @@
               Inbox only
             </label>
           </div>
-          <p id="selectionSummary" class="selection-summary">0 selected · 0 visible</p>
+          <div class="inbox-meta">
+            <p id="selectionSummary" class="selection-summary">0 selected · 0 visible</p>
+            <p id="filingKeys" class="filing-keys"><kbd>j</kbd>/<kbd>k</kbd> move · <kbd>f</kbd> file · <kbd>s</kbd> skip · <kbd>r</kbd> later · <kbd>u</kbd> undo</p>
+          </div>
           <div class="batch-tools batch-tools--assign">
             <button id="selectFiltered" class="secondary">Select visible</button>
             <button id="clearSelected" class="secondary">Clear selection</button>

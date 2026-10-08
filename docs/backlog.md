@@ -2,13 +2,12 @@
 
 Open work lives in [GitHub Issues](https://github.com/jeromeeliah/github-stars-organizer/issues). This file is the short queue.
 
-Shipped in `0.1.x`: persist, inbox, sticky filings, 401/403/429 copy, desk hygiene, Markdown list without rule-match lines.
+Shipped in `0.1.x`: persist, inbox, sticky filings, 401/403/429 copy, desk hygiene, Markdown list without rule-match lines, keyboard filing.
 
 ## Next
 
 | Id | Note |
 | --- | --- |
-| P0-4 | Keyboard filing: `j/k`, file, skip, Read Later, undo last |
 | P1-2 | Never-opened / stale queue. Not a rank formula |
 | P1-3 | Language, archived, license as filters, not categories |
 | P1-4 | Rename (stable id), edit keywords, delete or merge |
