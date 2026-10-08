@@ -115,6 +115,10 @@ test("describes GraphQL list writes that lack the user scope", () => {
     describeGitHubError({ graphqlType: "INSUFFICIENT_SCOPES", message: "Your token has not been granted the required scopes" }),
     /user scope/i,
   );
+  assert.match(
+    describeGitHubError({ message: "cannot have more than 32 lists" }),
+    /32 Lists/i,
+  );
 });
 
 function graphqlFetcher(handler) {

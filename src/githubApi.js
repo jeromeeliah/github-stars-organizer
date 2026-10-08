@@ -271,6 +271,9 @@ export function describeGitHubError(error, rateLimit = {}) {
   if (graphqlType === "INSUFFICIENT_SCOPES" || /insufficient_scopes|user scope/i.test(message)) {
     return "GitHub Lists write needs a classic PAT with the user scope. Fine-grained Starring: Read can fetch stars, not create lists. Exports still work.";
   }
+  if (/more than 32 lists/i.test(message)) {
+    return "GitHub allows at most 32 Lists. Reuse an existing list by name, or remove one on github.com/stars, then retry. Exports still work.";
+  }
   if (status === 401) {
     return "GitHub rejected the token (401). Check that it is a current PAT and that Starring: Read is enabled.";
   }
