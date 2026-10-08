@@ -65,7 +65,7 @@ Outbound GitHub calls from `src/githubApi.js` (`https://api.github.com`, `X-GitH
 | POST | `/graphql` `viewer.lists` | `fetchExistingLists` | Read GitHub Lists (GraphQL) |
 | POST | `/graphql` `createUserList` | `createList` | Create a **private** list |
 | POST | `/graphql` `updateUserList` | `updateList` | Rename / describe an existing list |
-| POST | `/graphql` `deleteUserList` | `deleteList` | Delete a leftover list (32-cap replace) |
+| POST | `/graphql` `deleteUserList` | `deleteList` | Delete leftover lists after a confirmed replace |
 | POST | `/graphql` `updateUserListsForItem` | `addRepoToList` / `setRepoLists` | Merge (subset) or replace (desk resync) membership |
 
 REST `/user/lists` 404s. There is no REST Lists path. Treat Lists write as optional. If GraphQL writes fail (usually missing `user` scope), the UI should still export JSON/Markdown/taxonomy.
@@ -103,4 +103,4 @@ Nothing in-repo for Docker, Vercel, Netlify, Fly, Terraform, or GitHub Actions. 
 4. **Token is tab-scoped** — refresh loses it; filings stay in this browser. That is intended.
 5. **Local notes stay local** — `brain/`, `docs/agents/`, and `scripts/` are gitignored.
 6. **No CI** — `npm test` is the gate. The PR template also expects a manual browser pass.
-7. **GitHub max 32 Lists** — at the cap, **Replace GitHub Lists with these shelves** renames existing lists to desk names, re-files stars onto those shelves only, and deletes leftovers after confirm. Uncategorized never becomes a List. Subset push still only reuses a list by name.
+7. **GitHub max 32 Lists** — **Replace GitHub Lists with these shelves** names lists after the desk, re-files stars onto those shelves only, and deletes leftovers after confirm. At the cap it rewrites existing lists instead of creating a 33rd. Uncategorized never becomes a List. Subset push still only reuses a list by exact name.

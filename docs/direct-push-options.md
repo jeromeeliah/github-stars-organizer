@@ -10,7 +10,7 @@ How GitHub Stars Organizer moves categorized repositories onto GitHub Lists, wha
 2. File locally. JSON/Markdown exports always work.
 3. Optional Lists write uses **GraphQL**, not REST `/user/lists` (that path 404s).
 4. Probe `viewer { lists }` first. If it works, allow subset push and last-resort shelf replace.
-5. Create lists **private**. Subset push reuses a list by name and **merges** membership. **Replace GitHub Lists with these shelves** names lists after the desk. At the 32-list cap it rewrites existing lists, re-files stars onto those shelves only, and **deletes leftovers after confirm**.
+5. Create lists **private**. Subset push reuses a list by exact name and **merges** membership. **Replace GitHub Lists with these shelves** names lists after the desk, re-files stars onto those shelves only, and **deletes leftovers after confirm**. At the 32-list cap it rewrites existing lists instead of creating a 33rd.
 6. If GraphQL writes fail (usually missing `user` scope), fall back to exports.
 7. A browser extension on `github.com` remains the long-term fallback if GraphQL is blocked for an account. Playwright is maintainer-only.
 
@@ -21,7 +21,7 @@ Implemented in [`src/githubApi.js`](../src/githubApi.js):
 - `viewer { lists { items } }` — `fetchExistingLists`
 - `createUserList` — `createList` (`isPrivate: true` unless the caller overrides)
 - `updateUserList` — `updateList` (rename; keep current visibility)
-- `deleteUserList` — `deleteList` (leftovers after a confirmed 32-cap replace)
+- `deleteUserList` — `deleteList` (leftovers after a confirmed replace)
 - `updateUserListsForItem` — `addRepoToList` (merge) and `setRepoLists` (replace)
 
 Official reference: [GraphQL `createUserList`](https://docs.github.com/en/graphql/reference/mutations#createuserlist), [`updateUserList`](https://docs.github.com/en/graphql/reference/mutations#updateuserlist), [`deleteUserList`](https://docs.github.com/en/graphql/reference/mutations#deleteuserlist), and [`updateUserListsForItem`](https://docs.github.com/en/graphql/reference/mutations#updateuserlistsforitem).

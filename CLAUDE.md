@@ -26,7 +26,7 @@ Keep categorization/export pure so Node can test it. Keep GitHub I/O in `githubA
 
 - Never persist the GitHub token (`localStorage`, IndexedDB, cookies, env files, exports).
 - Send the token only to `api.github.com`, only on user-initiated requests.
-- GitHub Lists write uses GraphQL (`createUserList`, `updateUserList`, `deleteUserList`, `updateUserListsForItem`), not REST `/user/lists`. New lists are private. Writes need a classic PAT with the `user` scope. At the 32-list cap, last-resort replace rewrites lists to desk names and deletes leftovers after confirm. Exports must still work when Lists fail.
+- GitHub Lists write uses GraphQL (`createUserList`, `updateUserList`, `deleteUserList`, `updateUserListsForItem`), not REST `/user/lists`. New lists are private. Writes need a classic PAT with the `user` scope. Last-resort replace rewrites lists to desk names and deletes leftovers after confirm; at the 32-list cap it does not create a 33rd list. Exports must still work when Lists fail.
 - Do not open the app via `file://` — ES module imports fail. Use `npm run start`.
 - Do not treat Playwright or Chrome automation as an end-user flow.
 

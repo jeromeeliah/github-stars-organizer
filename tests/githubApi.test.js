@@ -176,8 +176,11 @@ test("near the 32-list cap, shelf replacement rewrites unused lists instead of c
   assert.ok(plan.remove.length > 0);
 });
 
-test("under the 32-list cap, shelf replacement creates missing names and does not delete extras", () => {
-  const lists = [{ id: "UL_keep", name: "Productivity", itemIds: [] }];
+test("under the 32-list cap, shelf replacement creates missing names and deletes unused leftovers", () => {
+  const lists = [
+    { id: "UL_keep", name: "Productivity", itemIds: [] },
+    { id: "UL_extra", name: "SriLanka", itemIds: [] },
+  ];
   const categories = [
     { id: "productivity", name: "Productivity" },
     { id: "web-apps", name: "Web & App Development" },
@@ -189,7 +192,8 @@ test("under the 32-list cap, shelf replacement creates missing names and does no
   assert.equal(plan.rename[0].action, "keep");
   assert.equal(plan.create.length, 1);
   assert.equal(plan.create[0].name, "Web & App Development");
-  assert.deepEqual(plan.remove, []);
+  assert.equal(plan.remove.length, 1);
+  assert.equal(plan.remove[0].id, "UL_extra");
 });
 
 test("describes GraphQL list writes that lack the user scope", () => {

@@ -11,7 +11,7 @@
 ### Changed
 
 - Lists write needs a classic PAT with the `user` scope. Fine-grained **Starring: Read** still fetches stars. Exports still work when Lists write is denied.
-- At GitHub's 32-list cap, **Replace GitHub Lists with these shelves** renames existing lists to desk names, re-files stars onto those shelves only, and deletes leftovers after confirm. It does not silently alias onto unrelated lists.
+- **Replace GitHub Lists with these shelves** names lists after the desk, re-files stars onto those shelves only, and deletes leftovers after confirm. At the 32-list cap it rewrites existing lists instead of creating a 33rd. It does not silently alias onto unrelated lists.
 - README shows the empty desk. Entry file is `index.html`. Onboarding lives under `docs/`.
 
 ## [0.1.2] — 2026-09-27

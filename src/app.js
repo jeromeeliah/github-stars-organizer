@@ -349,7 +349,7 @@ function listsSupportNote() {
     };
   }
   return {
-    text: `Lists available (${count} existing). Room for ${GITHUB_LIST_LIMIT - count} more private lists. Replace rewrites Lists to these shelves after you confirm. Subset push reuses a list by name.`,
+    text: `Lists available (${count} existing). Room for ${GITHUB_LIST_LIMIT - count} more private lists. Replace rewrites Lists to these shelves and deletes leftovers after you confirm. Subset push reuses a list by name.`,
     tone: "",
   };
 }
@@ -358,7 +358,7 @@ function syncListsTitle() {
   if (state.isBusy) return "Wait until the current request finishes.";
   if (!state.listsAvailable) return "Connect with a classic PAT (user scope) to enable Lists write.";
   if (!state.grouped) return "Analyze stars or import JSON first.";
-  return "Rewrites GitHub Lists to match these shelves. Confirm required. At the 32-list cap this deletes leftover lists.";
+  return "Rewrites GitHub Lists to match these shelves. Confirm required. Unused leftover lists are deleted.";
 }
 
 async function checkListsSupport(token) {
@@ -440,10 +440,17 @@ async function syncGitHubLists() {
     const note = listsSupportNote();
     setListsNote(note.text, note.tone);
     const failed = result.failed;
-    setStatus(
-      `GitHub Lists now match the desk. Renamed: ${willRename}. Created: ${result.plan.create.length}. Deleted: ${result.removed.length}. Filed: ${result.filed}. Unchanged: ${result.skipped}. Failed: ${failed}.`,
-      failed > 0 ? "error" : "success",
-    );
+    if (failed > 0) {
+      setStatus(
+        `Replace finished with ${failed} re-file failure(s). Leftover lists were kept. Filed: ${result.filed}. Unchanged: ${result.skipped}. Exports still work.`,
+        "error",
+      );
+    } else {
+      setStatus(
+        `GitHub Lists now match the desk. Renamed: ${willRename}. Created: ${result.plan.create.length}. Deleted: ${result.removed.length}. Filed: ${result.filed}. Unchanged: ${result.skipped}.`,
+        "success",
+      );
+    }
   } catch (error) {
     setStatus(`${describeGitHubError(error)}. Exports still work.`, "error");
   } finally {

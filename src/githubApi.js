@@ -71,8 +71,8 @@ const CREATE_LIST_MUTATION = `
 `;
 
 const UPDATE_LIST_MUTATION = `
-  mutation UpdateUserList($listId: ID!, $name: String, $description: String, $isPrivate: Boolean) {
-    updateUserList(input: { listId: $listId, name: $name, description: $description, isPrivate: $isPrivate }) {
+  mutation UpdateUserList($listId: ID!, $name: String, $description: String) {
+    updateUserList(input: { listId: $listId, name: $name, description: $description }) {
       list { id name description isPrivate }
     }
   }
@@ -179,7 +179,6 @@ export async function updateList(token, payload = {}, options = {}) {
   const variables = { listId };
   if (payload.name !== undefined) variables.name = clip(payload.name, LIST_NAME_MAX);
   if (payload.description !== undefined) variables.description = clip(payload.description, LIST_DESCRIPTION_MAX) || null;
-  if (payload.isPrivate !== undefined) variables.isPrivate = Boolean(payload.isPrivate);
 
   const data = await graphqlRequest(token, UPDATE_LIST_MUTATION, variables, options);
   const list = data.updateUserList?.list;
@@ -351,6 +350,14 @@ function listItemCount(list) {
   return (list?.itemIds || []).length;
 }
 
+function isRetryableWriteError(error) {
+  if (error?.graphqlType === "INSUFFICIENT_SCOPES") return false;
+  const status = error?.status;
+  if (status === 429 || status === 502 || status === 503) return true;
+  if (status === 403) return true;
+  return /something went wrong while executing your query/i.test(String(error?.message || ""));
+}
+
 async function maybeDelay(options = {}) {
   const ms = Number(options.delayMs || 0);
   if (ms > 0) await new Promise((resolve) => setTimeout(resolve, ms));
@@ -364,9 +371,7 @@ async function withWriteRetry(fn, options = {}) {
       return await fn();
     } catch (error) {
       lastError = error;
-      const status = error?.status;
-      const retryable = status === 403 || status === 429 || status === 502 || status === 503;
-      if (!retryable || attempt === attempts) throw error;
+      if (!isRetryableWriteError(error) || attempt === attempts) throw error;
       const wait = Math.min(8000, 400 * 2 ** attempt);
       await new Promise((resolve) => setTimeout(resolve, wait));
     }
