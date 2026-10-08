@@ -81,6 +81,15 @@
       margin-bottom: 20px;
     }
 
+    .brand-mark {
+      margin: 0 0 12px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-size: 0.625rem;
+      line-height: 1.2;
+      color: var(--ink);
+      white-space: pre;
+    }
+
     .brand h1 {
       margin: 0 0 6px;
       font-size: clamp(1.8rem, 4vw, 3.4rem);
@@ -148,6 +157,18 @@
       line-height: 1.45;
     }
 
+    .hint[data-tone="warn"] { color: var(--warn); }
+    .hint[data-tone="error"] { color: var(--error); }
+
+    .steps {
+      margin: 0;
+      padding-left: 1.2em;
+    }
+
+    .steps li + li {
+      margin-top: 0.4em;
+    }
+
     .actions {
       display: flex;
       gap: 8px;
@@ -171,9 +192,36 @@
       color: var(--accent-strong);
     }
 
+    button.warn {
+      background: transparent;
+      border-color: var(--warn);
+      color: var(--warn);
+    }
+
+    button.warn:hover:not(:disabled) {
+      background: rgba(138, 75, 18, 0.08);
+    }
+
+    button.warn:active:not(:disabled) {
+      background: rgba(138, 75, 18, 0.14);
+    }
+
     button:disabled {
       opacity: 0.48;
       cursor: not-allowed;
+    }
+
+    button.warn:disabled {
+      opacity: 1;
+      border-style: dashed;
+      background: transparent;
+      color: var(--warn);
+      cursor: not-allowed;
+    }
+
+    #syncLists {
+      display: block;
+      margin-top: 8px;
     }
 
     .file-button input {
@@ -514,6 +562,10 @@
   <div class="shell">
     <aside>
       <section class="brand">
+        <pre class="brand-mark" aria-hidden="true">+-----+-----+-----+
+|  *  |  *  |     |
+| /|\ | /|\ |     |
++-----+-----+-----+</pre>
         <h1>GitHub Stars Organizer</h1>
         <p>File unfiled stars in this browser and download JSON or Markdown.</p>
       </section>
@@ -525,7 +577,7 @@
             <label for="token">GitHub token</label>
             <input id="token" type="password" autocomplete="off" spellcheck="false" placeholder="github_pat_… or ghp_…">
           </div>
-          <p class="hint">Runs in this browser. The token is not stored and is only sent to GitHub API requests. To fetch stars, a fine-grained token with <strong>Starring: Read</strong> is enough: <a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noopener noreferrer">fine-grained tokens</a>. To push GitHub Lists, use a <a href="https://github.com/settings/tokens/new?scopes=user&amp;description=github-stars-organizer-lists" target="_blank" rel="noopener noreferrer">classic PAT with the <strong>user</strong> scope</a>. Lists are created private. If you star private repositories, the classic token also needs <strong>repo</strong>.</p>
+          <p class="hint">Runs in this browser. The token is not stored and is only sent to GitHub API requests. To fetch stars, a fine-grained token with <strong>Starring: Read</strong> is enough: <a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noopener noreferrer">fine-grained tokens</a>. To write GitHub Lists (optional, below), use a <a href="https://github.com/settings/tokens/new?scopes=user&amp;description=github-stars-organizer-lists" target="_blank" rel="noopener noreferrer">classic PAT with the <strong>user</strong> scope</a>. New lists are private. If you star private repositories, the classic token also needs <strong>repo</strong>.</p>
           <div class="actions">
             <button id="analyze" type="submit">Analyze stars</button>
           </div>
@@ -534,7 +586,13 @@
 
       <section class="panel">
         <h2>How to use</h2>
-        <p class="hint">1. Fetch stars or import <strong>github-stars-organized.json</strong>. 2. The inbox is the default (unfiled rows). 3. File a row to shrink the queue. 4. Export JSON to keep a copy. This browser may cache filings, never the token. 5. Optional: push a subset to GitHub Lists via GraphQL (classic PAT, <strong>user</strong> scope). New lists are private.</p>
+        <ol class="hint steps">
+          <li>Fetch stars or import <strong>github-stars-organized.json</strong>.</li>
+          <li>The inbox is the default (unfiled rows).</li>
+          <li>File a row to shrink the queue.</li>
+          <li>Export JSON to keep a copy. This browser may cache filings, never the token.</li>
+          <li>Optional: push a selected subset to a GitHub List by name. Replace GitHub Lists is a last-resort rewrite after confirm; at 32 lists it deletes leftovers.</li>
+        </ol>
       </section>
 
       <section class="panel">
@@ -573,8 +631,8 @@
 
       <section class="panel">
         <h2>GitHub Lists</h2>
-        <p id="listsNote" class="hint">GitHub Lists use GraphQL (<code>createUserList</code>, <code>updateUserListsForItem</code>). REST <code>/user/lists</code> 404s. Prefer subset push. Existing lists are reused by name. New lists are private. Writes need a classic PAT with the <strong>user</strong> scope.</p>
-        <button id="syncLists" class="secondary" disabled>Last-resort: push all non-empty categories</button>
+        <p id="listsNote" class="hint">Connect with a classic PAT (<strong>user</strong> scope) to write Lists. Subset push reuses a list by name. Replace rewrites Lists to these shelves. At the 32-list cap it deletes leftovers after you confirm. New lists are private.</p>
+        <button id="syncLists" class="warn" disabled aria-describedby="listsNote" title="Connect with a classic PAT (user scope) to enable Lists write.">Replace GitHub Lists with these shelves</button>
       </section>
     </aside>
 

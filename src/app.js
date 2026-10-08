@@ -5,6 +5,9 @@ import {
   fetchAllStars,
   fetchExistingLists,
   findListByName,
+  GITHUB_LIST_LIMIT,
+  planShelfReplacement,
+  replaceDeskShelves,
 } from "./githubApi.js";
 import {
   advanceCursor,
@@ -328,21 +331,56 @@ function refreshGroups() {
   state.grouped = state.repos.length > 0 ? applyGrouped() : null;
 }
 
+function setListsNote(text, tone) {
+  els.listsNote.textContent = text;
+  if (tone) {
+    els.listsNote.dataset.tone = tone;
+  } else {
+    delete els.listsNote.dataset.tone;
+  }
+}
+
+function listsSupportNote() {
+  const count = state.existingLists.length;
+  if (count >= GITHUB_LIST_LIMIT) {
+    return {
+      text: `At GitHub's ${GITHUB_LIST_LIMIT}-list cap (${count} existing). Replace will rename lists to these shelves and delete leftovers after you confirm. Subset push still reuses a list by name.`,
+      tone: "warn",
+    };
+  }
+  return {
+    text: `Lists available (${count} existing). Room for ${GITHUB_LIST_LIMIT - count} more private lists. Replace rewrites Lists to these shelves after you confirm. Subset push reuses a list by name.`,
+    tone: "",
+  };
+}
+
+function syncListsTitle() {
+  if (state.isBusy) return "Wait until the current request finishes.";
+  if (!state.listsAvailable) return "Connect with a classic PAT (user scope) to enable Lists write.";
+  if (!state.grouped) return "Analyze stars or import JSON first.";
+  return "Rewrites GitHub Lists to match these shelves. Confirm required. At the 32-list cap this deletes leftover lists.";
+}
+
 async function checkListsSupport(token) {
   try {
     state.existingLists = await fetchExistingLists(token);
     state.listsAvailable = true;
-    els.listsNote.textContent = `GraphQL Lists available. Existing lists: ${state.existingLists.length}. New lists are created private. Writes need a classic PAT with the user scope. Prefer subset push.`;
+    const note = listsSupportNote();
+    setListsNote(note.text, note.tone);
   } catch (error) {
     state.existingLists = [];
     state.listsAvailable = false;
-    els.listsNote.textContent = `${describeGitHubError(error)} Fetch and exports still work without Lists write.`;
+    setListsNote(`${describeGitHubError(error)} Fetch and exports still work without Lists write.`, "error");
   }
 }
 
 async function ensureList(name, description) {
   const existing = findListByName(state.existingLists, name);
   if (existing) return existing;
+
+  if (state.existingLists.length >= GITHUB_LIST_LIMIT) {
+    throw Object.assign(new Error(`cannot have more than ${GITHUB_LIST_LIMIT} lists`), { status: 400 });
+  }
 
   const list = await createList(state.token, { name, description });
   state.existingLists = [...state.existingLists, list];
@@ -352,33 +390,65 @@ async function ensureList(name, description) {
 async function syncGitHubLists() {
   if (!state.grouped || !state.token) return;
 
-  const categories = state.grouped.categories.filter((category) => category.repositories.length > 0 && !category.isDefault);
-  setBusy(true);
-  setStatus(`Last-resort: pushing ${categories.length} non-empty categories to GitHub Lists via GraphQL. Prefer subset push.`, "info");
-
-  let created = 0;
-  let reused = 0;
-  let failed = 0;
-
-  for (const category of categories) {
-    try {
-      const already = findListByName(state.existingLists, category.name);
-      const list = await ensureList(category.name, category.description || "Organized by GitHub Stars Organizer");
-      if (already) reused += 1;
-      else created += 1;
-
-      for (const result of category.repositories) {
-        await addRepoToList(state.token, list.id, result.repo, { lists: state.existingLists });
-      }
-
-      setStatus(`Category push ${created + reused}/${categories.length}: ${category.name}${already ? " (reused list)" : ""}`, "info");
-    } catch (error) {
-      failed += 1;
-    }
+  const shelves = state.categories.filter((category) => !category.isDefault);
+  let plan;
+  try {
+    plan = planShelfReplacement(state.existingLists, shelves);
+  } catch (error) {
+    setStatus(`${describeGitHubError(error)}. Exports still work.`, "error");
+    return;
   }
 
-  setBusy(false);
-  setStatus(`Category push finished. Created: ${created}. Reused: ${reused}. Failed: ${failed}.`, failed > 0 ? "error" : "success");
+  const willRename = plan.rename.filter((step) => step.action === "rename").length;
+  const willCreate = plan.create.length;
+  const willDelete = plan.remove.length;
+
+  const planSummary = willDelete > 0
+    ? `This deletes ${willDelete} leftover list${willDelete === 1 ? "" : "s"}, renames ${willRename}, and creates ${willCreate}.`
+    : `This renames ${willRename} and creates ${willCreate}. No leftover lists will be deleted.`;
+  const confirmed = globalThis.confirm(
+    `Replace GitHub Lists with these ${plan.shelves} shelves? ${planSummary} Stars will be re-filed onto desk shelves only. Uncategorized stays off Lists.`,
+  );
+  if (!confirmed) return;
+
+  setBusy(true);
+  setStatus(`Replacing GitHub Lists with ${plan.shelves} desk shelves.`, "info");
+
+  try {
+    let lastFileAnnounce = 0;
+    const result = await replaceDeskShelves(state.token, {
+      lists: state.existingLists,
+      categories: shelves,
+      results: state.grouped.results,
+    }, {
+      delayMs: 80,
+      onProgress: (event) => {
+        if (event.phase === "rename" || event.phase === "create" || event.phase === "delete") {
+          setStatus(`${event.phase} ${event.name}`, "info");
+        } else if (event.phase === "file") {
+          const done = event.filed + event.skipped;
+          if (done === 1 || done - lastFileAnnounce >= 25 || done === state.grouped.results.length) {
+            lastFileAnnounce = done;
+            setStatus(`Re-filing ${done}/${state.grouped.results.length} repositories…`, "info");
+          }
+        } else if (event.phase === "delete-skipped") {
+          setStatus(`Re-file had ${event.failed} failures. Leftover lists were kept.`, "error");
+        }
+      },
+    });
+    state.existingLists = result.lists;
+    const note = listsSupportNote();
+    setListsNote(note.text, note.tone);
+    const failed = result.failed;
+    setStatus(
+      `GitHub Lists now match the desk. Renamed: ${willRename}. Created: ${result.plan.create.length}. Deleted: ${result.removed.length}. Filed: ${result.filed}. Unchanged: ${result.skipped}. Failed: ${failed}.`,
+      failed > 0 ? "error" : "success",
+    );
+  } catch (error) {
+    setStatus(`${describeGitHubError(error)}. Exports still work.`, "error");
+  } finally {
+    setBusy(false);
+  }
 }
 
 function importTaxonomy(event) {
@@ -752,6 +822,7 @@ function renderSelectionSummary() {
 
 function setBusy(isBusy) {
   state.isBusy = isBusy;
+  els.status?.setAttribute("aria-busy", isBusy ? "true" : "false");
   updateActionAvailability();
 }
 
@@ -768,6 +839,7 @@ function updateActionAvailability() {
   els.importCellar.disabled = state.isBusy;
   els.clearCellar.disabled = state.isBusy;
   els.syncLists.disabled = state.isBusy || !hasGrouped || !state.listsAvailable;
+  els.syncLists.title = syncListsTitle();
   els.selectFiltered.disabled = state.isBusy || !hasGrouped;
   els.clearSelected.disabled = state.isBusy || !hasSelection;
   els.bulkCategory.disabled = state.isBusy || !hasGrouped;

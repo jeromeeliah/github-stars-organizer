@@ -64,9 +64,11 @@ Outbound GitHub calls from `src/githubApi.js` (`https://api.github.com`, `X-GitH
 | GET | `/user/starred?per_page=100` | `fetchAllStars` | Paginate stars via `Link: rel="next"` |
 | POST | `/graphql` `viewer.lists` | `fetchExistingLists` | Read GitHub Lists (GraphQL) |
 | POST | `/graphql` `createUserList` | `createList` | Create a **private** list |
-| POST | `/graphql` `updateUserListsForItem` | `addRepoToList` | Merge a repo onto a list (does not strip other lists) |
+| POST | `/graphql` `updateUserList` | `updateList` | Rename / describe an existing list |
+| POST | `/graphql` `deleteUserList` | `deleteList` | Delete a leftover list (32-cap replace) |
+| POST | `/graphql` `updateUserListsForItem` | `addRepoToList` / `setRepoLists` | Merge (subset) or replace (desk resync) membership |
 
-REST `/user/lists` 404s. Treat Lists write as optional. If GraphQL writes fail (usually missing `user` scope), the UI should still export JSON/Markdown/taxonomy.
+REST `/user/lists` 404s. There is no REST Lists path. Treat Lists write as optional. If GraphQL writes fail (usually missing `user` scope), the UI should still export JSON/Markdown/taxonomy.
 
 ## Authentication
 
@@ -97,7 +99,8 @@ Nothing in-repo for Docker, Vercel, Netlify, Fly, Terraform, or GitHub Actions. 
 
 1. **HTTP server required** — ES modules need `npm run start` (or any static server), not `file://`.
 2. **Zero product dependencies** — do not add a bundler or backend without an explicit product decision.
-3. **Lists write needs `user`** — GraphQL `createUserList` / `updateUserListsForItem`. REST `/user/lists` 404s. Exports still work without that scope.
+3. **Lists write needs `user`** — GraphQL `createUserList` / `updateUserList` / `deleteUserList` / `updateUserListsForItem`. REST `/user/lists` 404s. Exports still work without that scope.
 4. **Token is tab-scoped** — refresh loses it; filings stay in this browser. That is intended.
 5. **Local notes stay local** — `brain/`, `docs/agents/`, and `scripts/` are gitignored.
 6. **No CI** — `npm test` is the gate. The PR template also expects a manual browser pass.
+7. **GitHub max 32 Lists** — at the cap, **Replace GitHub Lists with these shelves** renames existing lists to desk names, re-files stars onto those shelves only, and deletes leftovers after confirm. Uncategorized never becomes a List. Subset push still only reuses a list by name.

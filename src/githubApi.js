@@ -3,6 +3,25 @@ const GITHUB_GRAPHQL_URL = "https://api.github.com/graphql";
 const GITHUB_API_VERSION = "2022-11-28";
 const LIST_NAME_MAX = 32;
 const LIST_DESCRIPTION_MAX = 300;
+export const GITHUB_LIST_LIMIT = 32;
+
+const LIST_PUSH_ALIASES = {
+  "ai-ml": ["local ai", "llm", "huggingface"],
+  "ai-agents": ["agentic ai", "agentic", "ai workflow", "mcp servers", "n8n", "agent"],
+  "developer-tools": ["tools & plugins", "tools", "plugins", "devtools"],
+  "web-apps": ["vibecoding", "web", "frontend"],
+  "data-analytics": ["datasets", "scrapers", "analytics"],
+  "infra-devops": ["home automation", "devops", "infra"],
+  "security-privacy": ["darkhat", "security", "privacy"],
+  "databases-storage": ["jurisdictional", "database", "storage"],
+  "languages-frameworks": ["rust", "language", "framework"],
+  "learning-reference": ["learning", "inspiration", "tutorial", "course"],
+  "design-creative": ["design system", "comfyui", "code art", "3d", "vector", "gsap", "design"],
+  "business-finance": ["technical analysis", "tax", "trading", "finance"],
+  "science-research": ["bio", "health", "science"],
+  "productivity": ["productivity", "shortcuts"],
+  "read-later": ["lookn into", "tbc", "ideas", "later"],
+};
 
 const VIEWER_LISTS_QUERY = `
   query ViewerLists($after: String) {
@@ -47,6 +66,22 @@ const CREATE_LIST_MUTATION = `
   mutation CreateUserList($name: String!, $description: String, $isPrivate: Boolean) {
     createUserList(input: { name: $name, description: $description, isPrivate: $isPrivate }) {
       list { id name description isPrivate }
+    }
+  }
+`;
+
+const UPDATE_LIST_MUTATION = `
+  mutation UpdateUserList($listId: ID!, $name: String, $description: String, $isPrivate: Boolean) {
+    updateUserList(input: { listId: $listId, name: $name, description: $description, isPrivate: $isPrivate }) {
+      list { id name description isPrivate }
+    }
+  }
+`;
+
+const DELETE_LIST_MUTATION = `
+  mutation DeleteUserList($listId: ID!) {
+    deleteUserList(input: { listId: $listId }) {
+      clientMutationId
     }
   }
 `;
@@ -135,7 +170,64 @@ export async function createList(token, payload = {}, options = {}) {
   return { ...serializeList(list), itemIds: [] };
 }
 
+export async function updateList(token, payload = {}, options = {}) {
+  const listId = payload.id || payload.listId;
+  if (!listId) {
+    throw Object.assign(new Error("updateUserList needs a list id."), { status: 400 });
+  }
+
+  const variables = { listId };
+  if (payload.name !== undefined) variables.name = clip(payload.name, LIST_NAME_MAX);
+  if (payload.description !== undefined) variables.description = clip(payload.description, LIST_DESCRIPTION_MAX) || null;
+  if (payload.isPrivate !== undefined) variables.isPrivate = Boolean(payload.isPrivate);
+
+  const data = await graphqlRequest(token, UPDATE_LIST_MUTATION, variables, options);
+  const list = data.updateUserList?.list;
+  if (!list?.id) {
+    throw Object.assign(new Error("GitHub did not return the updated list."), { status: 502 });
+  }
+  return serializeList(list);
+}
+
+export async function deleteList(token, listId, options = {}) {
+  const id = typeof listId === "string" ? listId : listId?.id;
+  if (!id) {
+    throw Object.assign(new Error("deleteUserList needs a list id."), { status: 400 });
+  }
+  await graphqlRequest(token, DELETE_LIST_MUTATION, { listId: id }, options);
+  return { id };
+}
+
+export async function setRepoLists(token, repo, listIds, options = {}) {
+  const itemId = await resolveRepoGraphQLId(token, repo, options);
+  const wanted = [...new Set((listIds || []).filter(Boolean))];
+  const lists = options.lists || await fetchExistingLists(token, options);
+  const current = lists
+    .filter((list) => (list.itemIds || []).includes(itemId))
+    .map((list) => list.id);
+  const same = current.length === wanted.length && wanted.every((id) => current.includes(id));
+  if (same) {
+    return { itemId, listIds: wanted, already: true };
+  }
+
+  await graphqlRequest(token, UPDATE_LISTS_FOR_ITEM_MUTATION, { itemId, listIds: wanted }, options);
+
+  for (const list of lists) {
+    const ids = new Set(list.itemIds || []);
+    if (wanted.includes(list.id)) ids.add(itemId);
+    else ids.delete(itemId);
+    list.itemIds = [...ids];
+  }
+
+  return { itemId, listIds: wanted };
+}
+
 export async function addRepoToList(token, listId, repo, options = {}) {
+  if (options.replace) {
+    const result = await setRepoLists(token, repo, [listId], options);
+    return { id: listId, ...result };
+  }
+
   const itemId = await resolveRepoGraphQLId(token, repo, options);
   const lists = options.lists || await fetchExistingLists(token, options);
   const current = lists
@@ -146,15 +238,8 @@ export async function addRepoToList(token, listId, repo, options = {}) {
     return { id: listId, itemId, already: true };
   }
 
-  const listIds = [...current, listId];
-  await graphqlRequest(token, UPDATE_LISTS_FOR_ITEM_MUTATION, { itemId, listIds }, options);
-
-  const target = lists.find((list) => list.id === listId);
-  if (target) {
-    target.itemIds = [...new Set([...(target.itemIds || []), itemId])];
-  }
-
-  return { id: listId, itemId, listIds };
+  const result = await setRepoLists(token, repo, [...current, listId], { ...options, lists });
+  return { id: listId, ...result };
 }
 
 export async function resolveRepoGraphQLId(token, repo, options = {}) {
@@ -262,6 +347,33 @@ function clip(value, max) {
   return text.length <= max ? text : text.slice(0, max);
 }
 
+function listItemCount(list) {
+  return (list?.itemIds || []).length;
+}
+
+async function maybeDelay(options = {}) {
+  const ms = Number(options.delayMs || 0);
+  if (ms > 0) await new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+async function withWriteRetry(fn, options = {}) {
+  const attempts = Number(options.retries || 5);
+  let lastError;
+  for (let attempt = 1; attempt <= attempts; attempt += 1) {
+    try {
+      return await fn();
+    } catch (error) {
+      lastError = error;
+      const status = error?.status;
+      const retryable = status === 403 || status === 429 || status === 502 || status === 503;
+      if (!retryable || attempt === attempts) throw error;
+      const wait = Math.min(8000, 400 * 2 ** attempt);
+      await new Promise((resolve) => setTimeout(resolve, wait));
+    }
+  }
+  throw lastError;
+}
+
 export function describeGitHubError(error, rateLimit = {}) {
   const status = error?.status || Number(String(error?.message || "").match(/\b(401|403|429)\b/)?.[1]);
   const reset = formatRateLimitReset(rateLimit.reset ?? error?.rateLimit?.reset);
@@ -272,7 +384,7 @@ export function describeGitHubError(error, rateLimit = {}) {
     return "GitHub Lists write needs a classic PAT with the user scope. Fine-grained Starring: Read can fetch stars, not create lists. Exports still work.";
   }
   if (/more than 32 lists/i.test(message)) {
-    return "GitHub allows at most 32 Lists. Reuse an existing list by name, or remove one on github.com/stars, then retry. Exports still work.";
+    return "GitHub allows at most 32 Lists. Replace GitHub Lists with these shelves to rename existing lists and delete leftovers, or push a subset onto a list that already exists by name. Exports still work.";
   }
   if (status === 401) {
     return "GitHub rejected the token (401). Check that it is a current PAT and that Starring: Read is enabled.";
@@ -294,6 +406,200 @@ export function findListByName(lists, name) {
   const wanted = String(name || "").trim().toLowerCase();
   if (!wanted) return null;
   return (lists || []).find((list) => String(list?.name || "").trim().toLowerCase() === wanted) || null;
+}
+
+export function findListForCategory(lists, category = {}, options = {}) {
+  const minScore = options.minScore ?? 55;
+  const exact = findListByName(lists, category.name);
+  if (exact) return exact;
+
+  let best = null;
+  let bestScore = 0;
+  for (const list of lists || []) {
+    const score = scoreListForCategory(list, category);
+    if (score > bestScore) {
+      best = list;
+      bestScore = score;
+    } else if (score === bestScore && score > 0 && best) {
+      if (foldListName(list.name).length > foldListName(best.name).length) best = list;
+    }
+  }
+  if (!best || bestScore < minScore) return null;
+  return best;
+}
+
+export function resolveListForCategory(lists, category = {}, options = {}) {
+  return findListForCategory(lists, category, options);
+}
+
+function claimList(assigned, rename, list, category, name, description) {
+  assigned.add(list.id);
+  rename.push({
+    list,
+    category,
+    name,
+    description,
+    action: String(list.name || "").trim() === name ? "keep" : "rename",
+  });
+}
+
+function sortUnusedLists(lists) {
+  return lists.slice().sort((a, b) => listItemCount(a) - listItemCount(b) || String(a.id).localeCompare(String(b.id)));
+}
+
+export function planShelfReplacement(lists, categories = []) {
+  const existing = [...(lists || [])];
+  const shelves = (categories || []).filter((category) => !category.isDefault);
+  const atCap = existing.length >= GITHUB_LIST_LIMIT;
+  const assigned = new Set();
+  const rename = [];
+  const create = [];
+  const unused = () => existing.filter((list) => !assigned.has(list.id));
+
+  for (const category of shelves) {
+    const name = clip(category.name, LIST_NAME_MAX);
+    const description = clip(category.description, LIST_DESCRIPTION_MAX);
+    const pool = unused();
+    const exact = findListByName(pool, name);
+    if (exact) {
+      claimList(assigned, rename, exact, category, name, description);
+      continue;
+    }
+
+    const closest = findListForCategory(pool, category, { minScore: atCap ? 40 : 55 });
+    if (closest) {
+      claimList(assigned, rename, closest, category, name, description);
+      continue;
+    }
+
+    create.push({ category, name, description });
+  }
+
+  const room = Math.max(0, GITHUB_LIST_LIMIT - existing.length);
+  while (create.length > room) {
+    const leftover = sortUnusedLists(unused())[0];
+    if (!leftover) break;
+    const step = create.shift();
+    claimList(assigned, rename, leftover, step.category, step.name, step.description);
+  }
+
+  if (existing.length + create.length > GITHUB_LIST_LIMIT) {
+    throw Object.assign(new Error(`cannot have more than ${GITHUB_LIST_LIMIT} lists`), { status: 400 });
+  }
+
+  return {
+    rename,
+    create,
+    remove: unused(),
+    atCap,
+    shelves: shelves.length,
+  };
+}
+
+export async function replaceDeskShelves(token, input = {}, options = {}) {
+  const lists = [...(input.lists || [])];
+  const plan = planShelfReplacement(lists, input.categories || []);
+  const byCategoryId = new Map();
+
+  for (const step of plan.rename) {
+    const current = lists.find((list) => list.id === step.list.id);
+    if (!current) continue;
+    if (step.action === "rename" || current.name !== step.name) {
+      const updated = await updateList(token, {
+        id: current.id,
+        name: step.name,
+        description: step.description,
+      }, options);
+      current.name = updated.name;
+      current.description = updated.description;
+    }
+    byCategoryId.set(step.category.id, current);
+    await maybeDelay(options);
+    options.onProgress?.({ phase: "rename", name: step.name });
+  }
+
+  for (const step of plan.create) {
+    if (lists.length >= GITHUB_LIST_LIMIT) {
+      throw Object.assign(new Error(`cannot have more than ${GITHUB_LIST_LIMIT} lists`), { status: 400 });
+    }
+    const created = await createList(token, { name: step.name, description: step.description }, options);
+    lists.push(created);
+    byCategoryId.set(step.category.id, created);
+    await maybeDelay(options);
+    options.onProgress?.({ phase: "create", name: step.name });
+  }
+
+  let filed = 0;
+  let skipped = 0;
+  let failed = 0;
+
+  for (const result of input.results || []) {
+    const category = result.primaryCategory;
+    const target = category && !category.isDefault ? byCategoryId.get(category.id) : null;
+    const listIds = target ? [target.id] : [];
+    try {
+      const outcome = await withWriteRetry(
+        () => setRepoLists(token, result.repo, listIds, { ...options, lists }),
+        options,
+      );
+      if (outcome?.already) skipped += 1;
+      else filed += 1;
+    } catch (error) {
+      failed += 1;
+      options.onError?.(error, result);
+    }
+    await maybeDelay(options);
+    options.onProgress?.({ phase: "file", filed, skipped, failed });
+  }
+
+  const removed = [];
+  if (failed === 0) {
+    for (const extra of plan.remove) {
+      await withWriteRetry(() => deleteList(token, extra.id, options), options);
+      const index = lists.findIndex((list) => list.id === extra.id);
+      if (index >= 0) lists.splice(index, 1);
+      removed.push(extra);
+      await maybeDelay(options);
+      options.onProgress?.({ phase: "delete", name: extra.name });
+    }
+  } else {
+    options.onProgress?.({ phase: "delete-skipped", failed, leftovers: plan.remove.length });
+  }
+
+  return { plan, lists, byCategoryId, filed, skipped, failed, removed };
+}
+
+export function foldListName(name) {
+  return String(name || "")
+    .toLowerCase()
+    .replace(/[^\p{L}\p{N}]+/gu, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function scoreListForCategory(list, category) {
+  const listFold = foldListName(list?.name);
+  const categoryFold = foldListName(category?.name);
+  if (!listFold) return 0;
+  if (categoryFold && listFold === categoryFold) return 90;
+  if (categoryFold && listFold.startsWith(categoryFold)) return 78;
+  if (categoryFold && listFold.includes(categoryFold)) return 70;
+
+  let aliasScore = 0;
+  const aliases = LIST_PUSH_ALIASES[category?.id] || [];
+  aliases.forEach((alias, index) => {
+    const folded = foldListName(alias);
+    if (!folded) return;
+    const primacy = Math.max(0, 16 - index);
+    if (listFold === folded) {
+      aliasScore = Math.max(aliasScore, (folded.length >= 5 ? 92 : 70) + primacy);
+    } else if (folded.length >= 4 && listFold.startsWith(folded)) {
+      aliasScore = Math.max(aliasScore, 80 + Math.floor(primacy / 2));
+    } else if (listFold.includes(folded)) {
+      aliasScore = Math.max(aliasScore, 55 + Math.min(folded.length, 15));
+    }
+  });
+  return aliasScore;
 }
 
 function formatRateLimitReset(reset) {

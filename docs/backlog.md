@@ -2,7 +2,7 @@
 
 Open work lives in [GitHub Issues](https://github.com/jeromeeliah/github-stars-organizer/issues). This file is the short queue.
 
-Shipped in `0.1.x`: persist, inbox, sticky filings, 401/403/429 copy, desk hygiene, Markdown list without rule-match lines, keyboard filing, GraphQL Lists push.
+Shipped in `0.1.x`: persist, inbox, sticky filings, 401/403/429 copy, desk hygiene, Markdown list without rule-match lines, keyboard filing, GraphQL Lists create/update/delete and 32-cap shelf replace.
 
 ## Next
 

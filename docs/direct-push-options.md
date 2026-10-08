@@ -9,8 +9,8 @@ How GitHub Stars Organizer moves categorized repositories onto GitHub Lists, wha
 1. Fetch stars with REST `GET /user/starred` (fine-grained **Starring: Read** is enough).
 2. File locally. JSON/Markdown exports always work.
 3. Optional Lists write uses **GraphQL**, not REST `/user/lists` (that path 404s).
-4. Probe `viewer { lists }` first. If it works, allow subset push and last-resort category push.
-5. Create lists **private**. Reuse an existing list by name. Merge membership; do not replace a repo's other lists.
+4. Probe `viewer { lists }` first. If it works, allow subset push and last-resort shelf replace.
+5. Create lists **private**. Subset push reuses a list by name and **merges** membership. **Replace GitHub Lists with these shelves** names lists after the desk. At the 32-list cap it rewrites existing lists, re-files stars onto those shelves only, and **deletes leftovers after confirm**.
 6. If GraphQL writes fail (usually missing `user` scope), fall back to exports.
 7. A browser extension on `github.com` remains the long-term fallback if GraphQL is blocked for an account. Playwright is maintainer-only.
 
@@ -20,11 +20,13 @@ Implemented in [`src/githubApi.js`](../src/githubApi.js):
 
 - `viewer { lists { items } }` — `fetchExistingLists`
 - `createUserList` — `createList` (`isPrivate: true` unless the caller overrides)
-- `updateUserListsForItem` — `addRepoToList` (read-modify-write: keep current list ids, add one)
+- `updateUserList` — `updateList` (rename; keep current visibility)
+- `deleteUserList` — `deleteList` (leftovers after a confirmed 32-cap replace)
+- `updateUserListsForItem` — `addRepoToList` (merge) and `setRepoLists` (replace)
 
-Official reference: [GraphQL `createUserList`](https://docs.github.com/en/graphql/reference/mutations#createuserlist) and [`updateUserListsForItem`](https://docs.github.com/en/graphql/reference/mutations#updateuserlistsforitem).
+Official reference: [GraphQL `createUserList`](https://docs.github.com/en/graphql/reference/mutations#createuserlist), [`updateUserList`](https://docs.github.com/en/graphql/reference/mutations#updateuserlist), [`deleteUserList`](https://docs.github.com/en/graphql/reference/mutations#deleteuserlist), and [`updateUserListsForItem`](https://docs.github.com/en/graphql/reference/mutations#updateuserlistsforitem).
 
-`updateUserListsForItem` **replaces** the repo's full list membership. The desk therefore loads current membership from `viewer.lists` items, then resubmits the merged id set.
+`updateUserListsForItem` **replaces** the repo's full list membership. Subset push therefore loads current membership from `viewer.lists` items, then resubmits the merged id set. Desk replace submits only the matching shelf.
 
 ### Token
 
@@ -59,4 +61,4 @@ As of 8 Oct 2026:
 
 ## Open-Source Copy
 
-> Fetch needs **Starring: Read**. Optional Lists push uses GraphQL and a classic PAT with the **user** scope. New lists are private. If GitHub denies the write, export JSON or Markdown and file in the Stars UI.
+> Fetch needs **Starring: Read**. Optional Lists push uses GraphQL (not REST `/user/lists`) and a classic PAT with the **user** scope. New lists are private. At 32 lists, replace existing Lists with the desk shelves after confirm. If GitHub denies the write, export JSON or Markdown and file in the Stars UI.
