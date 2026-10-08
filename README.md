@@ -22,7 +22,7 @@ npm test
 npm run start
 ```
 
-Open [http://localhost:4173/](http://localhost:4173/). There is no `npm install`. Do not open the HTML file directly; the page needs a local server for ES modules.
+Open [http://localhost:4173/](http://localhost:4173/). There is no `npm install` and no hosted app: clone this repo and run it locally. Do not open the HTML file directly; the page needs a local server for ES modules. The token never leaves the tab except for GitHub API requests you start. There is no telemetry.
 
 To fetch stars, create a [fine-grained personal access token](https://github.com/settings/personal-access-tokens/new) for your own account with **Starring: Read**. To also write GitHub Lists, use a [classic PAT with the `user` scope](https://github.com/settings/tokens/new?scopes=user&description=github-stars-organizer-lists) (add `repo` only if you star private repositories). Paste it into the page. It is sent only to `api.github.com` and is never written to this browser or to an export.
 
