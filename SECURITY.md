@@ -32,7 +32,7 @@ Security-sensitive areas in this project include:
 - The app should not store tokens persistently
 - The app should not send user data anywhere except GitHub API requests initiated by the user
 - There is no hosted instance and no product telemetry; clone-and-run is the supported path
-- Documentation should stay honest about GraphQL Lists (`user` scope) vs REST starring
+- Documentation should stay honest about GraphQL Lists (`user` scope) vs REST starring (read vs write)
 
 ## Disclosure
 

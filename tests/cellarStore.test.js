@@ -7,6 +7,7 @@ import {
   assertSafeCellarPayload,
   buildCellarSnapshot,
   captureFiling,
+  captureUnstar,
   clearCellar,
   inboxCount,
   isInboxRow,
@@ -139,13 +140,14 @@ test("inbox excludes manual, Read Later, and reviewed rows", () => {
   assert.equal(inboxCount(sticky.results), 0);
 });
 
-test("filing keys map j/k/f/s/r/u/x and stay quiet while typing or with modifiers", () => {
+test("filing keys map j/k/f/s/r/d/u/x and stay quiet while typing or with modifiers", () => {
   assert.equal(resolveFilingKey({ key: "j" }), "next");
   assert.equal(resolveFilingKey({ key: "ArrowUp" }), "previous");
   assert.equal(resolveFilingKey({ key: "f" }), "file");
   assert.equal(resolveFilingKey({ key: "Enter" }), "file");
   assert.equal(resolveFilingKey({ key: "s" }), "skip");
   assert.equal(resolveFilingKey({ key: "r" }), "read-later");
+  assert.equal(resolveFilingKey({ key: "d" }), "unstar");
   assert.equal(resolveFilingKey({ key: "u" }), "undo");
   assert.equal(resolveFilingKey({ key: "x" }), "select");
   assert.equal(resolveFilingKey({ key: "q" }), null);
@@ -243,4 +245,22 @@ test("memory cellar round-trips taxonomy and assignments without a token", async
 
   await clearCellar(storage);
   assert.equal(await loadCellar(storage), null);
+});
+
+test("unstar undo payload keeps the repo snapshot and prior list ids", () => {
+  const starred = { id: 7, full_name: "acme/widget", node_id: "R_widget" };
+  const entry = captureUnstar({
+    assignments: recordAssignment({}, 7, "read-later"),
+    reviewed: setReviewedFlag({}, 7, true),
+    lists: [
+      { id: "UL_keep", itemIds: ["R_widget"] },
+      { id: "UL_other", itemIds: ["R_other"] },
+    ],
+  }, starred);
+  assert.equal(entry.kind, "unstar");
+  assert.equal(entry.repoId, "7");
+  assert.equal(entry.repo.full_name, "acme/widget");
+  assert.deepEqual(entry.listIds, ["UL_keep"]);
+  assert.equal(entry.assignment.categoryId, "read-later");
+  assert.equal(entry.reviewed, true);
 });

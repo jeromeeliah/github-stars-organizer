@@ -8,12 +8,17 @@ import {
   GITHUB_LIST_LIMIT,
   planShelfReplacement,
   replaceDeskShelves,
+  setRepoLists,
+  starRepo,
+  unstarRepo,
 } from "./githubApi.js";
 import {
   advanceCursor,
   applyStickyFilings,
   buildCellarSnapshot,
   captureFiling,
+  captureUnstar,
+  clearAssignment,
   clearCellar,
   inboxCount,
   isInboxRow,
@@ -761,7 +766,20 @@ function repoRow(result) {
   select.value = result.primaryCategory.id;
   select.addEventListener("change", () => moveRepo(result.repo.id, select.value));
 
-  actions.append(select);
+  const unstar = document.createElement("button");
+  unstar.type = "button";
+  unstar.className = "secondary unstar";
+  unstar.textContent = "Unstar";
+  unstar.disabled = state.isBusy || !state.token;
+  unstar.title = state.token
+    ? "Remove this star on GitHub. u restars in this tab."
+    : "Connect a token to unstar on GitHub.";
+  unstar.setAttribute("aria-label", `Unstar ${result.repo.full_name}`);
+  unstar.addEventListener("click", () => {
+    unstarResult(result);
+  });
+
+  actions.append(select, unstar);
   top.append(toggle, text, actions);
 
   const details = document.createElement("details");
@@ -853,6 +871,9 @@ function updateActionAvailability() {
   els.applyBulkCategory.disabled = state.isBusy || !hasGrouped || !hasSelection;
   els.selectedListName.disabled = state.isBusy || !hasGrouped;
   els.pushSelected.disabled = state.isBusy || !canPushSelected;
+  document.querySelectorAll("button.unstar").forEach((button) => {
+    button.disabled = state.isBusy || !state.token;
+  });
 }
 
 function normalizeCategories(inputCategories) {
@@ -938,6 +959,7 @@ function handleFilingAction(action) {
   else if (action === "file") fileCurrentSuggestion();
   else if (action === "skip") skipCurrent();
   else if (action === "read-later") readLaterCurrent();
+  else if (action === "unstar") unstarCurrent();
   else if (action === "undo") undoLastFiling();
   else if (action === "select") toggleCursorSelection();
 }
@@ -987,10 +1009,74 @@ function readLaterCurrent() {
   commitFiling(result.repo.id, () => fileResult(result, target), `Filed ${result.repo.full_name} into Read Later.`);
 }
 
-function undoLastFiling() {
+function unstarCurrent() {
+  const result = currentResult();
+  if (result) unstarResult(result);
+}
+
+async function unstarResult(result) {
+  if (!result || state.isBusy) return;
+  if (!state.token) {
+    setStatus("Connect a GitHub token to unstar. Import-only sessions stay local.", "error");
+    return;
+  }
+
+  const repo = result.repo;
+  const name = repo.full_name;
+  const entry = captureUnstar({
+    assignments: state.assignments,
+    reviewed: state.reviewed,
+    lists: state.existingLists,
+  }, repo);
+  const beforeIds = visibleRepoIds();
+
+  setBusy(true);
+  try {
+    const outcome = await unstarRepo(state.token, repo);
+    let listsNote = "";
+    if (state.listsAvailable) {
+      try {
+        await setRepoLists(state.token, repo, [], {
+          lists: state.existingLists.length ? state.existingLists : undefined,
+        });
+        listsNote = " Removed it from GitHub Lists.";
+      } catch (error) {
+        listsNote = ` GitHub Lists were left as-is: ${describeGitHubError(error)}`;
+      }
+    }
+
+    dropRepoLocally(repo.id);
+    state.undoStack = pushUndo(state.undoStack, entry);
+    refreshGroups();
+    state.cursorRepoId = advanceCursor(beforeIds, String(repo.id), visibleRepoIds());
+    persistCellar();
+    if (state.grouped) renderAll();
+    else renderEmpty();
+    const already = outcome.already ? " (already unstarred on GitHub)" : "";
+    setStatus(`Unstarred ${name}${already}.${listsNote} u restars in this tab.`, "success");
+  } catch (error) {
+    setStatus(describeGitHubError(error), "error");
+  } finally {
+    setBusy(false);
+  }
+}
+
+function dropRepoLocally(repoId) {
+  const id = String(repoId);
+  state.repos = state.repos.filter((repo) => String(repo.id) !== id);
+  state.assignments = clearAssignment(state.assignments, id);
+  state.reviewed = setReviewedFlag(state.reviewed, id, false);
+  state.selectedRepoIds.delete(id);
+}
+
+async function undoLastFiling() {
   const entry = state.undoStack.at(-1);
   if (!entry) {
     setStatus("Nothing to undo in this tab.", "info");
+    return;
+  }
+  if (entry.kind === "unstar") {
+    await undoUnstar(entry);
     return;
   }
 
@@ -1002,6 +1088,49 @@ function undoLastFiling() {
   const result = resultById(entry.repoId);
   const name = result?.repo.full_name || `repository ${entry.repoId}`;
   persistAndRender(`Undid last filing for ${name}.`);
+}
+
+async function undoUnstar(entry) {
+  if (!entry?.repo) {
+    setStatus("Cannot restar: the repository snapshot is gone from this tab.", "error");
+    return;
+  }
+  if (!state.token) {
+    setStatus("Connect a GitHub token to restar. Undo of unstar needs this tab's token.", "error");
+    return;
+  }
+  if (state.isBusy) return;
+
+  setBusy(true);
+  try {
+    await starRepo(state.token, entry.repo);
+    let listsNote = "";
+    if (state.listsAvailable && entry.listIds?.length) {
+      try {
+        await setRepoLists(state.token, entry.repo, entry.listIds, {
+          lists: state.existingLists.length ? state.existingLists : undefined,
+        });
+        listsNote = " Restored GitHub List membership.";
+      } catch (error) {
+        listsNote = ` Starred again; Lists restore failed: ${describeGitHubError(error)}`;
+      }
+    }
+
+    state.undoStack = state.undoStack.slice(0, -1);
+    const id = String(entry.repoId);
+    if (!state.repos.some((repo) => String(repo.id) === id)) {
+      state.repos = [entry.repo, ...state.repos];
+    }
+    const restored = restoreFiling({ assignments: state.assignments, reviewed: state.reviewed }, entry);
+    state.assignments = restored.assignments;
+    state.reviewed = restored.reviewed;
+    state.cursorRepoId = id;
+    persistAndRender(`Restarred ${entry.repo.full_name}.${listsNote}`);
+  } catch (error) {
+    setStatus(describeGitHubError(error), "error");
+  } finally {
+    setBusy(false);
+  }
 }
 
 function toggleCursorSelection() {

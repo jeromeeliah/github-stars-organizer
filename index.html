@@ -456,7 +456,20 @@
 
     .repo-actions {
       display: flex;
-      justify-content: flex-end;
+      flex-direction: column;
+      align-items: stretch;
+      gap: 8px;
+    }
+
+    .repo-actions select,
+    .repo-actions button.unstar {
+      width: 100%;
+    }
+
+    .repo-actions button.unstar {
+      min-height: 36px;
+      padding: 6px 10px;
+      font-size: 0.82rem;
     }
 
     .repo-details {
@@ -577,7 +590,7 @@
             <label for="token">GitHub token</label>
             <input id="token" type="password" autocomplete="off" spellcheck="false" placeholder="github_pat_… or ghp_…">
           </div>
-          <p class="hint">Runs in this browser. The token is not stored and is only sent to GitHub API requests. To fetch stars, a fine-grained token with <strong>Starring: Read</strong> is enough: <a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noopener noreferrer">fine-grained tokens</a>. To write GitHub Lists (optional, below), use a <a href="https://github.com/settings/tokens/new?scopes=user&amp;description=github-stars-organizer-lists" target="_blank" rel="noopener noreferrer">classic PAT with the <strong>user</strong> scope</a>. New lists are private. If you star private repositories, the classic token also needs <strong>repo</strong>.</p>
+          <p class="hint">Runs in this browser. The token is not stored and is only sent to GitHub API requests. To fetch stars, a fine-grained token with <strong>Starring: Read</strong> is enough: <a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noopener noreferrer">fine-grained tokens</a>. Unstar needs <strong>Starring: write</strong>, or a classic PAT with <strong>public_repo</strong> (<strong>repo</strong> if you star private repositories). To write GitHub Lists (optional, below), use a <a href="https://github.com/settings/tokens/new?scopes=user&amp;description=github-stars-organizer-lists" target="_blank" rel="noopener noreferrer">classic PAT with the <strong>user</strong> scope</a>. New lists are private.</p>
           <div class="actions">
             <button id="analyze" type="submit">Analyze stars</button>
           </div>
@@ -589,7 +602,7 @@
         <ol class="hint steps">
           <li>Fetch stars or import <strong>github-stars-organized.json</strong>.</li>
           <li>The inbox is the default (unfiled rows).</li>
-          <li>File a row to shrink the queue.</li>
+          <li>File a row to shrink the queue. Unstar (<kbd>d</kbd>) drops it on GitHub; <kbd>u</kbd> restars in this tab.</li>
           <li>Export JSON to keep a copy. This browser may cache filings, never the token.</li>
           <li>Optional: push a selected subset to a GitHub List by name. Replace GitHub Lists is a last-resort rewrite after confirm; leftover lists not used as shelves are deleted.</li>
         </ol>
@@ -662,7 +675,7 @@
           </div>
           <div class="inbox-meta">
             <p id="selectionSummary" class="selection-summary">0 selected · 0 visible</p>
-            <p id="filingKeys" class="filing-keys"><kbd>j</kbd>/<kbd>k</kbd> move · <kbd>f</kbd> file · <kbd>s</kbd> skip · <kbd>r</kbd> later · <kbd>u</kbd> undo</p>
+            <p id="filingKeys" class="filing-keys"><kbd>j</kbd>/<kbd>k</kbd> move · <kbd>f</kbd> file · <kbd>s</kbd> skip · <kbd>r</kbd> later · <kbd>d</kbd> unstar · <kbd>u</kbd> undo</p>
           </div>
           <div class="batch-tools batch-tools--assign">
             <button id="selectFiltered" class="secondary">Select visible</button>

@@ -175,6 +175,7 @@ const FILING_KEYS = new Map([
   ["Enter", "file"],
   ["s", "skip"],
   ["r", "read-later"],
+  ["d", "unstar"],
   ["u", "undo"],
   ["x", "select"],
 ]);
@@ -217,6 +218,19 @@ export function captureFiling({ assignments = {}, reviewed = {} } = {}, repoId) 
     repoId: key,
     assignment: assignments[key] ? { ...assignments[key] } : null,
     reviewed: Boolean(reviewed[key]),
+  };
+}
+
+export function captureUnstar({ assignments = {}, reviewed = {}, lists = [] } = {}, repo) {
+  const itemId = repo?.node_id;
+  const listIds = itemId
+    ? (lists || []).filter((list) => (list.itemIds || []).includes(itemId)).map((list) => list.id)
+    : [];
+  return {
+    ...captureFiling({ assignments, reviewed }, repo?.id),
+    kind: "unstar",
+    repo: repo || null,
+    listIds,
   };
 }
 
