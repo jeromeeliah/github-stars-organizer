@@ -33,6 +33,7 @@ Official reference: [GraphQL `createUserList`](https://docs.github.com/en/graphq
 | Job | Token |
 | --- | --- |
 | Fetch stars | Fine-grained PAT, **Starring: Read** |
+| Unstar / restar | Fine-grained **Starring: write**, or classic **`public_repo`** |
 | Read/write Lists | Classic PAT with the **`user`** scope |
 | Private starred repos | Classic **`repo`** as well |
 
@@ -61,4 +62,4 @@ As of 8 Oct 2026:
 
 ## Open-Source Copy
 
-> Fetch needs **Starring: Read**. Optional Lists push uses GraphQL (not REST `/user/lists`) and a classic PAT with the **user** scope. New lists are private. At 32 lists, replace existing Lists with the desk shelves after confirm. If GitHub denies the write, export JSON or Markdown and file in the Stars UI.
+> Fetch needs **Starring: Read**. Unstar needs **Starring: write** or classic **`public_repo`**. Optional Lists push uses GraphQL (not REST `/user/lists`) and a classic PAT with the **user** scope. New lists are private. At 32 lists, replace existing Lists with the desk shelves after confirm. If GitHub denies the write, export JSON or Markdown and file in the Stars UI.

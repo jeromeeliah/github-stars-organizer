@@ -14,7 +14,7 @@ Open `http://localhost:4173/`.
 - **Node** is required for tests (`node --test`). **Python 3** is required for `npm run start` (`python3 -m http.server 4173`).
 - Do **not** open the HTML via `file://` — ES module imports will fail.
 - There is no `npm install` for the product. `package.json` has no `dependencies`.
-- Paste a GitHub PAT in the UI (not an env file). Fine-grained token with **Starring: Read** is enough to fetch stars.
+- Paste a GitHub PAT in the UI (not an env file). Fine-grained token with **Starring: Read** is enough to fetch stars. Unstar needs **Starring: write**, or classic **`public_repo`** (`repo` for private stars).
 
 ## Architecture
 
@@ -25,7 +25,7 @@ index.html                    # layout, CSS, token field
 src/app.js                    # DOM, session state, event handlers
 src/organizer.js              # rules, scoring, exports (pure, tested)
 src/cellarStore.js            # IndexedDB cellar, sticky filings, inbox, keyboard helpers (tested)
-src/githubApi.js              # only GitHub REST boundary
+src/githubApi.js              # GitHub REST stars (fetch/unstar) + GraphQL Lists
 tests/                        # Node built-in test runner
 docs/                         # notes, not runtime
 ```
@@ -40,7 +40,7 @@ Version `0.1.2`, `"private": true`. `"private"` blocks `npm publish`. The GitHub
 
 **No server database, ORM, or migrations.** Same-origin IndexedDB (`src/cellarStore.js`) may cache taxonomy, assignments, reviewed flags, and the last star snapshot so a refresh keeps filings. The GitHub token is never written. Portable JSON export/import is the durable snapshot.
 
-Session lives in `src/app.js` `state`: token (RAM only), raw repos, taxonomy, grouped results, selection/filters, inbox cursor, and a tab-only undo stack. Reload restores the cellar from IndexedDB or an imported JSON file; the token field stays empty. Inbox keys: `j`/`k` move, `f` file suggestion, `s` skip, `r` Read Later, `u` undo.
+Session lives in `src/app.js` `state`: token (RAM only), raw repos, taxonomy, grouped results, selection/filters, inbox cursor, and a tab-only undo stack. Reload restores the cellar from IndexedDB or an imported JSON file; the token field stays empty. Inbox keys: `j`/`k` move, `f` file suggestion, `s` skip, `r` Read Later, `d` unstar, `u` undo (restars in this tab).
 
 Logical shapes in `src/organizer.js`:
 
@@ -62,6 +62,8 @@ Outbound GitHub calls from `src/githubApi.js` (`https://api.github.com`, `X-GitH
 | Method | Path | Function | Purpose |
 | --- | --- | --- | --- |
 | GET | `/user/starred?per_page=100` | `fetchAllStars` | Paginate stars via `Link: rel="next"` |
+| DELETE | `/user/starred/{owner}/{repo}` | `unstarRepo` | Unstar one repository (204 or already-gone 404) |
+| PUT | `/user/starred/{owner}/{repo}` | `starRepo` | Restar from tab undo |
 | POST | `/graphql` `viewer.lists` | `fetchExistingLists` | Read GitHub Lists (GraphQL) |
 | POST | `/graphql` `createUserList` | `createList` | Create a **private** list |
 | POST | `/graphql` `updateUserList` | `updateList` | Rename / describe an existing list |
@@ -76,7 +78,7 @@ No Auth.js, Clerk, OAuth, middleware, or protected routes.
 
 The user pastes a PAT into a password field (`autocomplete="off"`). `isLikelyGitHubToken` in `src/organizer.js` accepts `github_pat_` and classic prefixes `ghp_`, `gho_`, `ghu_`, `ghs_`, `ghr_`. The token is copied to `state.token` and **must not be persisted**. It is sent only to GitHub, only on user-initiated requests (`SECURITY.md`).
 
-Minimum documented scope for fetch: fine-grained **Starring: Read**. Lists write: classic PAT with the **`user`** scope. Fine-grained tokens cannot currently create Lists. New lists are private.
+Minimum documented scope for fetch: fine-grained **Starring: Read**. Unstar: fine-grained **Starring: write**, or classic **`public_repo`** (`repo` if you star private repositories). Lists write: classic PAT with the **`user`** scope. Fine-grained tokens cannot currently create Lists. New lists are private. Import-only sessions cannot unstar.
 
 ## Deployment
 
@@ -88,7 +90,7 @@ The files are still static (`index.html` + `src/*.js`). A static host would serv
 
 - `src/organizer.js` — product brain: taxonomy, scoring, confidence, portable JSON/Markdown
 - `src/cellarStore.js` — IndexedDB cache, JSON import, sticky filings, inbox and keyboard helpers; never the token
-- `src/githubApi.js` — stars pagination + GraphQL Lists; keep all GitHub HTTP here
+- `src/githubApi.js` — stars pagination, unstar/restar, GraphQL Lists; keep all GitHub HTTP here
 - `src/app.js` — UI state machine; do not bury categorization rules here
 - `index.html` — entry URL and token/privacy copy
 - `tests/organizer.test.js` / `tests/githubApi.test.js` / `tests/cellarStore.test.js` — required before behavior changes

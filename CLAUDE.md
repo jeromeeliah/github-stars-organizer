@@ -17,7 +17,7 @@ Open `http://localhost:4173/`. There is no `npm install` for the product (`packa
 - `src/app.js` — DOM, in-memory session, event handlers (not unit-tested)
 - `src/organizer.js` — pure rules, scoring, exports (tested)
 - `src/cellarStore.js` — persist, sticky filings, inbox and keyboard helpers (tested)
-- `src/githubApi.js` — GitHub REST stars + GraphQL Lists (tested)
+- `src/githubApi.js` — GitHub REST stars (fetch/unstar/restar) + GraphQL Lists (tested)
 - `docs/` — notes, not runtime
 
 Keep categorization/export pure so Node can test it. Keep GitHub I/O in `githubApi.js`. Do not add a bundler, framework, or server to the core app.

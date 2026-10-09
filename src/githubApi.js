@@ -134,6 +134,59 @@ export async function fetchAllStars(token, options = {}) {
   return repos;
 }
 
+export function starringRepoPath(repo) {
+  const owner = String(repo?.owner?.login || String(repo?.full_name || repo?.nameWithOwner || "").split("/")[0] || "").trim();
+  const name = String(repo?.name || String(repo?.full_name || repo?.nameWithOwner || "").split("/")[1] || "").trim();
+  if (!owner || !name) {
+    throw Object.assign(new Error("Cannot star or unstar without owner/name."), { status: 400 });
+  }
+  return { owner, name };
+}
+
+async function requestStarred(token, method, repo, options = {}) {
+  const fetcher = options.fetcher || globalThis.fetch;
+  if (!fetcher) {
+    throw new Error("No fetch implementation is available.");
+  }
+
+  const { owner, name } = starringRepoPath(repo);
+  const isPut = method === "PUT";
+  const response = await fetcher(
+    `${GITHUB_API_ROOT}/user/starred/${encodeURIComponent(owner)}/${encodeURIComponent(name)}`,
+    {
+      method,
+      headers: {
+        ...buildGitHubHeaders(token),
+        ...(isPut ? { "Content-Length": "0" } : {}),
+      },
+      ...(isPut ? { body: "" } : {}),
+    },
+  );
+  return { owner, name, response };
+}
+
+async function throwStarringError(response) {
+  const error = await createGitHubError(response);
+  error.operation = "starring";
+  throw error;
+}
+
+export async function unstarRepo(token, repo, options = {}) {
+  const { owner, name, response } = await requestStarred(token, "DELETE", repo, options);
+  if (response.status === 204 || response.status === 404) {
+    return { owner, name, already: response.status === 404 };
+  }
+  await throwStarringError(response);
+}
+
+export async function starRepo(token, repo, options = {}) {
+  const { owner, name, response } = await requestStarred(token, "PUT", repo, options);
+  if (response.status === 204 || response.status === 304) {
+    return { owner, name };
+  }
+  await throwStarringError(response);
+}
+
 export async function fetchExistingLists(token, options = {}) {
   const lists = [];
   let after = null;
@@ -393,6 +446,10 @@ export function describeGitHubError(error, rateLimit = {}) {
   }
   if (status === 401) {
     return "GitHub rejected the token (401). Check that it is a current PAT and that Starring: Read is enabled.";
+  }
+  const remaining = rateLimit.remaining ?? error?.rateLimit?.remaining;
+  if (error?.operation === "starring" && status === 403 && remaining !== 0) {
+    return "Unstar needs Starring: write on a fine-grained token, or public_repo on a classic PAT (repo if you star private repositories). Fetch still works with Starring: Read.";
   }
   if (status === 403) {
     return reset

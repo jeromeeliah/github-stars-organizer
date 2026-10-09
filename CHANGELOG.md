@@ -5,7 +5,8 @@
 ### Added
 
 - Compact ASCII cellar-rack mark in the README, reused as a tiny `pre` above the app title.
-- Keyboard filing on the inbox: `j`/`k` move, `f` files the current suggestion, `s` skips (reviewed, same shelf), `r` files Read Later, `u` undoes the last filing in this tab. Keys stay quiet while typing.
+- Keyboard filing on the inbox: `j`/`k` move, `f` files the current suggestion, `s` skips (reviewed, same shelf), `r` files Read Later, `d` unstars on GitHub, `u` undoes the last filing or restars in this tab. Keys stay quiet while typing.
+- One-at-a-time Unstar from the row. Needs Starring write / classic `public_repo`. Drops the repo from the local cellar. If Lists write is available, membership is stripped; if that fails, the star is still removed. Undo does not survive a reload.
 - GitHub Lists push uses documented GraphQL (`viewer.lists`, `createUserList`, `updateUserList`, `deleteUserList`, `updateUserListsForItem`). New lists are private. Subset push merges membership. REST `/user/lists` is a 404.
 
 ### Changed

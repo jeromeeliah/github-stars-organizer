@@ -16,6 +16,9 @@ import {
   getRateLimit,
   planShelfReplacement,
   setRepoLists,
+  starRepo,
+  starringRepoPath,
+  unstarRepo,
   updateList,
 } from "../src/githubApi.js";
 
@@ -108,6 +111,81 @@ test("describes 401, 403, and 429 without dumping raw GitHub JSON", () => {
   assert.match(describeGitHubError({ status: 401, message: "Bad credentials" }), /token/i);
   assert.match(describeGitHubError({ status: 429, rateLimit: { reset: 1770000000 } }), /429/);
   assert.match(describeGitHubError({ status: 403, message: "forbidden" }), /403/);
+  assert.match(
+    describeGitHubError({
+      status: 403,
+      operation: "starring",
+      message: "Resource not accessible by personal access token",
+      rateLimit: { remaining: 4999, reset: 1770000000 },
+    }),
+    /Starring: write/,
+  );
+  assert.match(
+    describeGitHubError({
+      status: 403,
+      operation: "starring",
+      message: "API rate limit exceeded",
+      rateLimit: { remaining: 0, reset: 1770000000 },
+    }),
+    /rate limit/,
+  );
+});
+
+test("builds owner/name for starring routes and unstars via DELETE", async () => {
+  assert.deepEqual(starringRepoPath({ owner: { login: "acme" }, name: "widget" }), { owner: "acme", name: "widget" });
+  assert.deepEqual(starringRepoPath({ full_name: "acme/widget" }), { owner: "acme", name: "widget" });
+  assert.throws(() => starringRepoPath({ name: "orphan" }), /owner\/name/);
+
+  const calls = [];
+  const gone = await unstarRepo("ghp_abcdefghijklmnopqrstuvwxyz1234567890", { full_name: "acme/widget" }, {
+    fetcher: async (url, init = {}) => {
+      calls.push({ url, method: init.method });
+      return {
+        ok: false,
+        status: 404,
+        statusText: "Not Found",
+        headers: new Map(),
+        json: async () => ({ message: "Not Found" }),
+      };
+    },
+  });
+  assert.equal(gone.already, true);
+  assert.equal(calls[0].method, "DELETE");
+  assert.match(calls[0].url, /\/user\/starred\/acme\/widget$/);
+
+  const starred = await starRepo("ghp_abcdefghijklmnopqrstuvwxyz1234567890", { owner: { login: "acme" }, name: "widget" }, {
+    fetcher: async (url, init = {}) => {
+      calls.push({ url, method: init.method, headers: init.headers, body: init.body });
+      return {
+        ok: true,
+        status: 204,
+        statusText: "No Content",
+        headers: new Map(),
+        json: async () => ({}),
+      };
+    },
+  });
+  assert.equal(starred.name, "widget");
+  assert.equal(calls[1].method, "PUT");
+  assert.equal(calls[1].body, "");
+  assert.equal(calls[1].headers["Content-Length"], "0");
+
+  await assert.rejects(
+    () => unstarRepo("ghp_abcdefghijklmnopqrstuvwxyz1234567890", { full_name: "acme/widget" }, {
+      fetcher: async () => ({
+        ok: false,
+        status: 403,
+        statusText: "Forbidden",
+        headers: new Map(),
+        json: async () => ({ message: "Resource not accessible by personal access token" }),
+      }),
+    }),
+    (error) => {
+      assert.equal(error.operation, "starring");
+      assert.equal(error.status, 403);
+      return true;
+    },
+  );
 });
 
 test("reuses an existing GitHub List by name", () => {
